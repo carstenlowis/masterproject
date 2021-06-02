@@ -20,7 +20,7 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter
 
-parameter = 'd_T16_Volume' #can be changed to every parameter, the excel table contains
+parameter = 'T16_SUV_mean' #can be changed to every parameter, the excel table contains
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -39,7 +39,7 @@ for count in range(len(group)):  #analysis for the different groups
 
     truth = (group[count]['Ground_Truth'] != 'RI').astype(int)
 
-    predictions = [(group[count][parameter] <= threshold).astype(int) for threshold in thresholds]
+    predictions = [(group[count][parameter] >= threshold).astype(int) for threshold in thresholds]
 
     cm_array[count] = np.zeros((len(thresholds), 2, 2))
     for i, _ in enumerate(thresholds):

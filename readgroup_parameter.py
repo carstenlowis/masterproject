@@ -4,6 +4,8 @@ import numpy as np
 from sklearn import metrics
 import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
+import seaborn as sns
+from scipy.stats import ttest_ind_from_stats
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
@@ -19,7 +21,7 @@ groupname = ['T0', 'T0-12', 'T>12']
 
 #give a specific parameter
 
-parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
+parameter = 'T16_SUV_mean' #can be changed to every parameter, the excel table contains
 
 group=[groupdataT0[[parameter, 'Ground_Truth']].dropna(), groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
 #group[0] is T0, group[1] is T0-12, group[2] is T>12
@@ -62,7 +64,7 @@ for count in range(3):  #analysis for the three different groups
 #plot
 
 gs = gridspec.GridSpec(3, 1)
-plt.figure()
+plt.figure(1)
 for i in range(3):
     ax = plt.subplot(gs[i])
     plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f and best threshold = %0.2f)' %(areaundercurve[i], bestthreshold[i]))
@@ -74,4 +76,46 @@ for i in range(3):
 
 plt.tight_layout()
 plt.show()
+
+#statistical operations
+
+group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 = ([] for i in range(10))
+
+for count in range(3):  #divide groups in RI and Relapse for ttest
+
+    groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'RI'], axis=1).transpose())
+    groupRelapse.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'Relapse'], axis=1).transpose())
+
+for count in range(3):  #calculate mean, std of the different groups
+
+    group_mean.append(np.mean(group[count][parameter]))
+    group_std.append(np.std(group[count][parameter]))
+    groupRelapse_mean.append(np.mean(groupRelapse[count][parameter]))
+    groupRelapse_std.append(np.std(groupRelapse[count][parameter]))
+    groupRI_mean.append(np.mean(groupRI[count][parameter]))
+    groupRI_std.append(np.std(groupRI[count][parameter]))
+
+#boxplot
+
+gs = gridspec.GridSpec(3, 1)
+plt.figure(2)
+sns.set_theme(style="whitegrid")
+for i in range(3):
+    ax = plt.subplot(gs[i])
+    sns.boxplot(x = group[i][parameter])
+
+plt.show()
+
+sns.set_theme(style="whitegrid")
+sns.boxplot(x = group[0][parameter])
+
+#ttest between RI and Relapsed
+
+for count in range(3):  #calculate t and p of the different groups
+    t, p = ttest_ind_from_stats(groupRelapse_mean[count], groupRelapse_std[count], groupRelapse[count][parameter].size,
+                              groupRI_mean[count], groupRI_std[count], groupRI[count][parameter].size,
+                              equal_var = False)
+
+    t2.append(t)
+    p2.append(p)
 

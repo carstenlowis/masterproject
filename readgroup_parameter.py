@@ -6,6 +6,7 @@ import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
 from scipy.stats import ttest_ind_from_stats
+from scipy import stats
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
@@ -20,7 +21,7 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter
 
-parameter = 'T16_SUV_mean' #can be changed to every parameter, the excel table contains
+parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -82,7 +83,7 @@ plt.show()
 
 #statistical operations
 
-group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 = ([] for i in range(10))
+k2RIlist, pRIlist, k2Relapselist, pRelapselist, group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 = ([] for i in range(14))
 
 for count in range(len(group)):  #divide groups in RI and Relapse for ttest
     groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'RI'], axis=1).transpose())
@@ -115,13 +116,22 @@ for i in range(3):
     ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=8, verticalalignment='top')
     plt.show()
 
+#mann whitney u test between RI and Relapsed
+
+
 #ttest between RI and Relapsed
 
 for count in range(len(group)):  #calculate t and p of the different groups
+    #k2RI, pRI = stats.normaltest(groupRI[count][parameter])
+    #k2Relapse, pRelapse = stats.normaltest(groupRelapse[count][parameter])
     t, p = ttest_ind_from_stats(groupRelapse_mean[count], groupRelapse_std[count], groupRelapse[count][parameter].size,
                               groupRI_mean[count], groupRI_std[count], groupRI[count][parameter].size,
                               equal_var = False)
 
+    #k2RIlist.append(k2RI)
+    #pRIlist.append(pRI)
+    #k2Relapselist.append(k2Relapse)
+    #pRelapselist.append(pRelapse)
     t2.append(t)
     p2.append(p)
 

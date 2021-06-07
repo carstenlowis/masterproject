@@ -69,18 +69,15 @@ for count in range(len(group)):  #analysis for the different groups
 
 #plot
 
-gs = gridspec.GridSpec(len(group), 1)
-plt.figure('ROC analysis')
 for i in range(len(group)):
-    ax = plt.subplot(gs[i])
-    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f and best threshold = %0.2f)' %(areaundercurve[i], bestthreshold[i]))
+    plt.figure(groupname[i])
+    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(areaundercurve[i], bestthreshold[i], len(result[i]['tpr'])))
     plt.plot([0, 1], [0, 1])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title(groupname[i] + ' - ' + parameter)
     plt.legend(loc="lower right")
 
-plt.tight_layout()
 plt.show()
 
 #statistical operations
@@ -101,15 +98,22 @@ for count in range(len(group)):  #calculate mean, std of the different groups
 
 #boxplot
 
+for i in range(3):
+    textstr = '\n'.join((
+        r'RI',
+        r'n = %.0f' % (len(groupRI[i]),),
+        r'mean = %.2f' % (groupRI_mean[i],),
+        r'std = %.2f' % (groupRelapse_std[i],),
+        r'',
+        r'Relapse',
+        r'n = %.0f' % (len(groupRelapse[i]),),
+        r'mean = %.2f' % (groupRI_mean[i],),
+        r'std = %.2f' % (groupRelapse_std[i],)))
 
-gs = gridspec.GridSpec(len(group), 1)
-plt.figure(2)
-sns.set_theme(style="whitegrid")
-for i in range(len(group)):
-    ax = plt.subplot(gs[i])
-    sns.boxplot(x = group[i][parameter])
-
-plt.show()
+    DF = pd.DataFrame({'RI': groupRI[i][parameter], 'Relapse': groupRelapse[i][parameter]})
+    ax = DF[['RI', 'Relapse']].plot(kind = 'box', title = 'Group ' + groupname[i], showmeans = True)
+    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=8, verticalalignment='top')
+    plt.show()
 
 #ttest between RI and Relapsed
 

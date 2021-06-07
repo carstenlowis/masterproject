@@ -66,8 +66,6 @@ for count in range(len(group)):  #analysis for the different groups
     auc = metrics.auc(result[count]['fpr'], result[count]['tpr'])
     areaundercurve[count] = auc
 
-#result[0].to_excel()
-
 #plot
 
 for i in range(len(group)):
@@ -104,11 +102,11 @@ for i in range(3):
         r'RI',
         r'n = %.0f' % (len(groupRI[i]),),
         r'mean = %.2f' % (groupRI_mean[i],),
-        r'std = %.2f' % (groupRelapse_std[i],),
+        r'std = %.2f' % (groupRI_std[i],),
         r'',
         r'Relapse',
         r'n = %.0f' % (len(groupRelapse[i]),),
-        r'mean = %.2f' % (groupRI_mean[i],),
+        r'mean = %.2f' % (groupRelapse_mean[i],),
         r'std = %.2f' % (groupRelapse_std[i],)))
 
     DF = pd.DataFrame({'RI': groupRI[i][parameter], 'Relapse': groupRelapse[i][parameter]})
@@ -134,4 +132,3 @@ for count in range(len(group)):  #calculate t and p of the different groups
     #pRelapselist.append(pRelapse)
     t2.append(t)
     p2.append(p)
-

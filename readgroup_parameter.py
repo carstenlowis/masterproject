@@ -21,7 +21,7 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter
 
-parameter = 'T16_SUV_mean' #can be changed to every parameter, the excel table contains
+parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -57,7 +57,7 @@ for count in range(len(group)):  #analysis for the different groups
         dic['spe'].append(spe)
         dic['threshold'].append(thresholds.iloc[i])
         dic['multiplication'].append(tpr*spe)
-        dic['youden'].append(tpr+fpr-1)
+        dic['youden'].append(tpr+spe-1)
         dic['TN'].append(cm[0, 0])
         dic['FP'].append(cm[0, 1])
         dic['FN'].append(cm[1, 0])

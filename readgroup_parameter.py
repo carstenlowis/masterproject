@@ -10,7 +10,7 @@ from scipy import stats
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_27052021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07062021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12
@@ -21,7 +21,7 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter
 
-parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
+parameter = 'T16_SUV_mean' #can be changed to every parameter, the excel table contains
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -160,4 +160,13 @@ output = pd.DataFrame(
             'Relapse_mean', 'Relapse_std', 'Relapse_n'],
     columns=['T0', 'T0-12', 'T>12'])
 
-#output.to_excel(parameter + "_output.xlsx")
+#pathout = '/Volumes/BTU/MITARBEITER/Lowis/results/'
+pathout = '/Users/robin/Desktop/results'
+fileout = 'output.xlsx'
+dataout = join(pathout, fileout)
+
+writer = pd.ExcelWriter(dataout, engine='openpyxl', mode='a')
+output.to_excel(writer, sheet_name=parameter)
+writer.save()
+
+

@@ -32,7 +32,7 @@ else:
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
 
 #Analysis group T0
-cm_array, result, bestthreshold, areaundercurve = ([[]] * len(group) for i in range(4)) #analysis data for each group is stored in these lists
+cm_array, result, bestthreshold, youden, auc = ([[]] * len(group) for i in range(5)) #analysis data for each group is stored in these lists
 
 for count in range(len(group)):  #analysis for the different groups
 
@@ -46,7 +46,7 @@ for count in range(len(group)):  #analysis for the different groups
     for i, _ in enumerate(thresholds):
         cm_array[count][i] = metrics.confusion_matrix(truth, predictions[i])
 
-    dic = {'threshold': [], 'tpr': [], 'fpr': [], 'spe': [], 'multiplication': []}
+    dic = {'threshold': [], 'tpr': [], 'fpr': [], 'spe': [], 'multiplication': [], 'youden': [], 'TN': [], 'FP': [], 'FN': [], 'TP': []}
 
     for i, cm in enumerate(cm_array[count]):
         tpr = cm[1, 1] / (cm[1, 1] + cm[1, 0])
@@ -57,20 +57,26 @@ for count in range(len(group)):  #analysis for the different groups
         dic['spe'].append(spe)
         dic['threshold'].append(thresholds.iloc[i])
         dic['multiplication'].append(tpr*spe)
+        dic['youden'].append(tpr+fpr-1)
+        dic['TN'].append(cm[0, 0])
+        dic['FP'].append(cm[0, 1])
+        dic['FN'].append(cm[1, 0])
+        dic['TP'].append(cm[1, 1])
 
 
     result[count] = pd.DataFrame(dic)
 
+    youden[count] = result[count]['threshold'][np.argmax(result[count]['youden'])]
     bestthreshold[count] = result[count]['threshold'][np.argmax(result[count]['multiplication'])]
 
-    auc = metrics.auc(result[count]['fpr'], result[count]['tpr'])
-    areaundercurve[count] = auc
+    areaundercurve = metrics.auc(result[count]['fpr'], result[count]['tpr'])
+    auc[count] = areaundercurve
 
 #plot
 
 for i in range(len(group)):
     plt.figure(groupname[i])
-    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(areaundercurve[i], bestthreshold[i], len(result[i]['tpr'])))
+    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(auc[i], bestthreshold[i], len(result[i]['tpr'])))
     plt.plot([0, 1], [0, 1])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -132,3 +138,26 @@ for count in range(len(group)):  #calculate t and p of the different groups
     #pRelapselist.append(pRelapse)
     t2.append(t)
     p2.append(p)
+
+#excel output
+
+output = pd.DataFrame(
+    np.array([[auc[i] for i in range(3)],
+              [bestthreshold[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
+              [result[i]['FN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['TP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
+              [youden[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['youden'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['youden'])] for i in range(3)],
+              [result[i]['FN'][np.argmax(result[i]['youden'])] for i in range(3)], [result[i]['TP'][np.argmax(result[i]['youden'])] for i in range(3)],
+              [group_mean[i] for i in range(3)], [group_std[i] for i in range(3)], [len(group[i]) for i in range(3)],
+              [groupRI_mean[i] for i in range(3)], [groupRI_std[i] for i in range(3)], [len(groupRI[i]) for i in range(3)],
+              [groupRelapse_mean[i] for i in range(3)], [groupRelapse_std[i] for i in range(3)], [len(groupRelapse[i]) for i in range(3)]]),
+    index=['AUC',
+            'Best_Threshold', 'Best_Threshold_TN', 'Best_Threshold_FP',
+            'Best_Threshold_FN', 'Best_Threshold_TP',
+            'Youden_Threshold', 'Youden_Threshold_TN', 'Youden_Threshold_FP',
+            'Youden_Threshold_FN', 'Youden_Threshold_TP',
+            'mean', 'std', 'n',
+            'RI_mean', 'RI_std', 'RI_n',
+            'Relapse_mean', 'Relapse_std', 'Relapse_n'],
+    columns=['T0', 'T0-12', 'T>12'])
+
+#output.to_excel(parameter + "_output.xlsx")

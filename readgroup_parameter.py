@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
 from scipy.stats import ttest_ind_from_stats
-from scipy import stats
+from scipy.stats import ranksums
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
@@ -87,7 +87,7 @@ plt.show()
 
 #statistical operations
 
-k2RIlist, pRIlist, k2Relapselist, pRelapselist, group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 = ([] for i in range(14))
+k2RIlist, pRIlist, k2Relapselist, pRelapselist, group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 , slist, plist= ([] for i in range(16))
 
 for count in range(len(group)):  #divide groups in RI and Relapse for ttest
     groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'RI'], axis=1).transpose())
@@ -122,27 +122,32 @@ for i in range(3):
 
 #mann whitney u test between RI and Relapsed
 
+for count in range(len(group)):  #calculate t and p of the different groups
+    s, p = ranksums(groupRI[count][parameter], groupRelapse[count][parameter])
+
+    slist.append(s)
+    plist.append(p)
 
 #ttest between RI and Relapsed
 
-for count in range(len(group)):  #calculate t and p of the different groups
+#for count in range(len(group)):  #calculate t and p of the different groups
     #k2RI, pRI = stats.normaltest(groupRI[count][parameter])
     #k2Relapse, pRelapse = stats.normaltest(groupRelapse[count][parameter])
-    t, p = ttest_ind_from_stats(groupRelapse_mean[count], groupRelapse_std[count], groupRelapse[count][parameter].size,
-                              groupRI_mean[count], groupRI_std[count], groupRI[count][parameter].size,
-                              equal_var = False)
+    #t, p = ttest_ind_from_stats(groupRelapse_mean[count], groupRelapse_std[count], groupRelapse[count][parameter].size,
+                              #groupRI_mean[count], groupRI_std[count], groupRI[count][parameter].size,
+                              #equal_var = False)
 
     #k2RIlist.append(k2RI)
     #pRIlist.append(pRI)
     #k2Relapselist.append(k2Relapse)
     #pRelapselist.append(pRelapse)
-    t2.append(t)
-    p2.append(p)
+    #t2.append(t)
+    #p2.append(p)
 
 #excel output
 
 output = pd.DataFrame(
-    np.array([[auc[i] for i in range(3)],
+    np.array([[auc[i] for i in range(3)], [slist[i] for i in range(3)], [plist[i] for i in range(3)],
               [bestthreshold[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
               [result[i]['FN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['TP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
               [youden[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['youden'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['youden'])] for i in range(3)],
@@ -150,7 +155,7 @@ output = pd.DataFrame(
               [group_mean[i] for i in range(3)], [group_std[i] for i in range(3)], [len(group[i]) for i in range(3)],
               [groupRI_mean[i] for i in range(3)], [groupRI_std[i] for i in range(3)], [len(groupRI[i]) for i in range(3)],
               [groupRelapse_mean[i] for i in range(3)], [groupRelapse_std[i] for i in range(3)], [len(groupRelapse[i]) for i in range(3)]]),
-    index=['AUC',
+    index=['AUC', 's_mann_whitney', 'p_mann_whitney',
             'Best_Threshold', 'Best_Threshold_TN', 'Best_Threshold_FP',
             'Best_Threshold_FN', 'Best_Threshold_TP',
             'Youden_Threshold', 'Youden_Threshold_TN', 'Youden_Threshold_FP',

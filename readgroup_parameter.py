@@ -174,4 +174,4 @@ writer = pd.ExcelWriter(dataout, engine='openpyxl', mode='a')
 output.to_excel(writer, sheet_name=parameter)
 writer.save()
 
-print()
+print(output)

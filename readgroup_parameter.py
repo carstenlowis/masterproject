@@ -128,7 +128,7 @@ for count in range(len(group)):  #calculate t and p of the different groups
     slist.append(s)
     plist.append(p)
 
-#ttest between RI and Relapsed
+##ttest between RI and Relapsed
 
 #for count in range(len(group)):  #calculate t and p of the different groups
     #k2RI, pRI = stats.normaltest(groupRI[count][parameter])

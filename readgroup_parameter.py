@@ -10,7 +10,7 @@ from scipy.stats import ranksums
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07062021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_15062021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12
@@ -19,7 +19,7 @@ groupdataT0 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_ti
 groupdataT012 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T0-12' ], axis=1).transpose()
 groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T>12' ], axis=1).transpose()
 
-#give a specific parameter
+#give a specific parameter and drop NA
 
 parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
 
@@ -29,6 +29,12 @@ if len(groupdataT0[parameter].dropna()) != 0:
 else:
     groupname = ['T0-12', 'T>12']
     group=[groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
+
+#Drop zeros
+
+for i in range(3):
+    group[i]=group[i][group[i][parameter] != 0]
+
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
 
 #Analysis group T0
@@ -87,9 +93,9 @@ plt.show()
 
 #statistical operations
 
-k2RIlist, pRIlist, k2Relapselist, pRelapselist, group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, t2, p2 , slist, plist= ([] for i in range(16))
+group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, slist, plist= ([] for i in range(10))
 
-for count in range(len(group)):  #divide groups in RI and Relapse for ttest
+for count in range(len(group)):  #divide groups in RI and Relapse
     groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'RI'], axis=1).transpose())
     groupRelapse.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'Relapse'], axis=1).transpose())
 
@@ -120,6 +126,10 @@ for i in range(3):
     ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=8, verticalalignment='top')
     plt.show()
 
+#histogramm
+
+
+
 #mann whitney u test between RI and Relapsed
 
 for count in range(len(group)):  #calculate t and p of the different groups
@@ -128,33 +138,32 @@ for count in range(len(group)):  #calculate t and p of the different groups
     slist.append(s)
     plist.append(p)
 
-##ttest between RI and Relapsed
-
-#for count in range(len(group)):  #calculate t and p of the different groups
-    #k2RI, pRI = stats.normaltest(groupRI[count][parameter])
-    #k2Relapse, pRelapse = stats.normaltest(groupRelapse[count][parameter])
-    #t, p = ttest_ind_from_stats(groupRelapse_mean[count], groupRelapse_std[count], groupRelapse[count][parameter].size,
-                              #groupRI_mean[count], groupRI_std[count], groupRI[count][parameter].size,
-                              #equal_var = False)
-
-    #k2RIlist.append(k2RI)
-    #pRIlist.append(pRI)
-    #k2Relapselist.append(k2Relapse)
-    #pRelapselist.append(pRelapse)
-    #t2.append(t)
-    #p2.append(p)
-
 #excel output
 
+bestthreshold_TN, bestthreshold_FP, bestthreshold_FN, bestthreshold_TP, youdenthreshold_TN, youdenthreshold_FP, youdenthreshold_FN, youdenthreshold_TP, n, nRI, nRelapse = ([] for i in range(11))
+
+for i in range(3):
+    bestthreshold_TN.append(result[i]['TN'][np.argmax(result[i]['multiplication'])])
+    bestthreshold_FP.append(result[i]['FP'][np.argmax(result[i]['multiplication'])])
+    bestthreshold_FN.append(result[i]['FN'][np.argmax(result[i]['multiplication'])])
+    bestthreshold_TP.append(result[i]['TP'][np.argmax(result[i]['multiplication'])])
+    youdenthreshold_TN.append(result[i]['TN'][np.argmax(result[i]['youden'])])
+    youdenthreshold_FP.append(result[i]['FP'][np.argmax(result[i]['youden'])])
+    youdenthreshold_FN.append(result[i]['FN'][np.argmax(result[i]['youden'])])
+    youdenthreshold_TP.append(result[i]['TP'][np.argmax(result[i]['youden'])])
+    n.append(len(group[i]))
+    nRI.append(len(groupRI[i]))
+    nRelapse.append(len(groupRelapse[i]))
+
 output = pd.DataFrame(
-    np.array([[auc[i] for i in range(3)], [slist[i] for i in range(3)], [plist[i] for i in range(3)],
-              [bestthreshold[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
-              [result[i]['FN'][np.argmax(result[i]['multiplication'])] for i in range(3)], [result[i]['TP'][np.argmax(result[i]['multiplication'])] for i in range(3)],
-              [youden[i] for i in range(3)], [result[i]['TN'][np.argmax(result[i]['youden'])] for i in range(3)], [result[i]['FP'][np.argmax(result[i]['youden'])] for i in range(3)],
-              [result[i]['FN'][np.argmax(result[i]['youden'])] for i in range(3)], [result[i]['TP'][np.argmax(result[i]['youden'])] for i in range(3)],
-              [group_mean[i] for i in range(3)], [group_std[i] for i in range(3)], [len(group[i]) for i in range(3)],
-              [groupRI_mean[i] for i in range(3)], [groupRI_std[i] for i in range(3)], [len(groupRI[i]) for i in range(3)],
-              [groupRelapse_mean[i] for i in range(3)], [groupRelapse_std[i] for i in range(3)], [len(groupRelapse[i]) for i in range(3)]]),
+    np.array([auc, slist, plist,
+              bestthreshold, bestthreshold_TN, bestthreshold_FP,
+              bestthreshold_FN, bestthreshold_TP,
+              youden, youdenthreshold_TN, youdenthreshold_FP,
+              youdenthreshold_FN, youdenthreshold_TP,
+              group_mean, group_std, n,
+              groupRI_mean, groupRI_std, nRI,
+              groupRelapse_mean, groupRelapse_std, nRelapse]),
     index=['AUC', 's_mann_whitney', 'p_mann_whitney',
             'Best_Threshold', 'Best_Threshold_TN', 'Best_Threshold_FP',
             'Best_Threshold_FN', 'Best_Threshold_TP',
@@ -166,12 +175,12 @@ output = pd.DataFrame(
     columns=['T0', 'T0-12', 'T>12'])
 
 #pathout = '/Volumes/BTU/MITARBEITER/Lowis/results/'
-pathout = '/Users/robin/Desktop/results'
-fileout = 'output.xlsx'
-dataout = join(pathout, fileout)
+#pathout = '/Users/robin/Desktop/results'
+#fileout = 'output.xlsx'
+#dataout = join(pathout, fileout)
 
-writer = pd.ExcelWriter(dataout, engine='openpyxl', mode='a')
-output.to_excel(writer, sheet_name=parameter)
-writer.save()
+#writer = pd.ExcelWriter(dataout, engine='openpyxl', mode='a')
+#output.to_excel(writer, sheet_name=parameter)
+#writer.save()
 
 print(output)

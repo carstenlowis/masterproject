@@ -10,7 +10,7 @@ from scipy.stats import ranksums
 
 #import data
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_15062021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_30062021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12

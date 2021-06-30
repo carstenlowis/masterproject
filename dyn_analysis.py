@@ -25,12 +25,16 @@ for i in range(int(len(data)/16)):
 dyndata = dyndata.apply(lambda x: pd.Series(x.dropna().values))
 
 #linear fit
+start=0
 coef=[]
 for i in range(1, dyndata.shape[1]):
-    coef.append(np.polyfit(dyndata.iloc[:, 0].values.tolist(), dyndata.iloc[:, i].values.tolist(), 1))
+    coef.append(np.polyfit(dyndata.iloc[start:, 0].values.tolist(), dyndata.iloc[start:, i].values.tolist(), 1))
 
 result=pd.DataFrame(coef, index=columns, columns=['slope', 'y axis intercept'])
 print(result)
 
-
+#plot
+#for i in range(6):
+#    plt.figure(columns[i])
+#    plt.plot(dyndata.iloc[:, 0].values.tolist(), dyndata.iloc[:, i+1].values.tolist())
 

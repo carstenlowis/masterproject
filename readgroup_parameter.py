@@ -9,7 +9,7 @@ from scipy.stats import ttest_ind_from_stats
 from scipy.stats import ranksums
 
 #import data
-path = '/Volumes/BTU/MITARBEITER/Lowis/'
+path = 'Z:\MITARBEITER\Lowis'
 file = '_Patiententabelle_Serial_Imaging_BM_anonymized_30062021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 

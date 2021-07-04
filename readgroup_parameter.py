@@ -10,7 +10,7 @@ from scipy.stats import ranksums
 
 #import data
 path = 'Z:\MITARBEITER\Lowis'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_30062021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_03072021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12
@@ -21,7 +21,7 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter and drop NA
 
-parameter = 'T16_TBR_mean' #can be changed to every parameter, the excel table contains
+parameter = 'd_T20_Volume' #can be changed to every parameter, the excel table contains
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -32,7 +32,7 @@ else:
 
 #Drop zeros
 
-for i in range(3):
+for i in range(len(groupname)):
     group[i]=group[i][group[i][parameter] != 0]
 
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
@@ -46,7 +46,8 @@ for count in range(len(group)):  #analysis for the different groups
 
     truth = (group[count]['Ground_Truth'] != 'RI').astype(int)
 
-    predictions = [(group[count][parameter] >= threshold).astype(int) for threshold in thresholds]
+#<>
+    predictions = [(group[count][parameter] <= threshold).astype(int) for threshold in thresholds]
 
     cm_array[count] = np.zeros((len(thresholds), 2, 2))
     for i, _ in enumerate(thresholds):
@@ -109,7 +110,7 @@ for count in range(len(group)):  #calculate mean, std of the different groups
 
 #boxplot
 
-for i in range(3):
+for i in range(len(groupname)):
     textstr = '\n'.join((
         r'RI',
         r'n = %.0f' % (len(groupRI[i]),),
@@ -142,7 +143,7 @@ for count in range(len(group)):  #calculate t and p of the different groups
 
 bestthreshold_TN, bestthreshold_FP, bestthreshold_FN, bestthreshold_TP, youdenthreshold_TN, youdenthreshold_FP, youdenthreshold_FN, youdenthreshold_TP, n, nRI, nRelapse = ([] for i in range(11))
 
-for i in range(3):
+for i in range(len(groupname)):
     bestthreshold_TN.append(result[i]['TN'][np.argmax(result[i]['multiplication'])])
     bestthreshold_FP.append(result[i]['FP'][np.argmax(result[i]['multiplication'])])
     bestthreshold_FN.append(result[i]['FN'][np.argmax(result[i]['multiplication'])])

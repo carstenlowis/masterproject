@@ -10,7 +10,7 @@ from scipy.stats import ranksums
 
 #import data
 path = 'Z:\MITARBEITER\Lowis'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_03072021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07072021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12
@@ -25,12 +25,24 @@ parameter = 'Dyn_2k0_slope' #can be changed to every parameter, the excel table 
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
-    group=[groupdataT0[[parameter, 'Ground_Truth']].dropna(), groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
+    group = [groupdataT0[[parameter, 'Ground_Truth']].dropna(), groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
 else:
     groupname = ['T0-12', 'T>12']
-    group=[groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
+    group = [groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
 
-#Drop zeros
+#normalization for negative values?
+if len(groupname) == 3:
+    group_min = [min(group[0][parameter]), min(group[1][parameter]), min(group[2][parameter])]
+    group[0][parameter] = group[0][parameter] - group_min[0]
+    group[1][parameter] = group[1][parameter] - group_min[1]
+    group[2][parameter] = group[2][parameter] - group_min[2]
+else:
+    group_min = [min(group[0][parameter]), min(group[1][parameter])]
+    group[0][parameter] = group[0][parameter] - group_min[0]
+    group[1][parameter] = group[1][parameter] - group_min[1]
+
+
+#Drop zeros ?
 
 #for i in range(len(groupname)):
 #    group[i]=group[i][group[i][parameter] != 0]
@@ -46,7 +58,8 @@ for count in range(len(group)):  #analysis for the different groups
 
     truth = (group[count]['Ground_Truth'] != 'RI').astype(int)
 
-#<>
+#<> ?
+
     predictions = [(group[count][parameter] >= threshold).astype(int) for threshold in thresholds]
 
     cm_array[count] = np.zeros((len(thresholds), 2, 2))
@@ -79,19 +92,6 @@ for count in range(len(group)):  #analysis for the different groups
     areaundercurve = metrics.auc(result[count]['fpr'], result[count]['tpr'])
     auc[count] = areaundercurve
 
-#plot
-
-for i in range(len(group)):
-    plt.figure(groupname[i])
-    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(auc[i], bestthreshold[i], len(result[i]['tpr'])))
-    plt.plot([0, 1], [0, 1])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title(groupname[i] + ' - ' + parameter)
-    plt.legend(loc="lower right")
-
-plt.show()
-
 #statistical operations
 
 group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, slist, plist= ([] for i in range(10))
@@ -107,6 +107,24 @@ for count in range(len(group)):  #calculate mean, std of the different groups
     groupRelapse_std.append(np.std(groupRelapse[count][parameter]))
     groupRI_mean.append(np.mean(groupRI[count][parameter]))
     groupRI_std.append(np.std(groupRI[count][parameter]))
+
+#normalization for negative values?
+bestthreshold
+
+#
+
+#plot
+
+for i in range(len(group)):
+    plt.figure(groupname[i])
+    plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(auc[i], bestthreshold[i], len(result[i]['tpr'])))
+    plt.plot([0, 1], [0, 1])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(groupname[i] + ' - ' + parameter)
+    plt.legend(loc="lower right")
+
+plt.show()
 
 #boxplot
 
@@ -173,7 +191,7 @@ output = pd.DataFrame(
             'mean', 'std', 'n',
             'RI_mean', 'RI_std', 'RI_n',
             'Relapse_mean', 'Relapse_std', 'Relapse_n'],
-    columns=['T0', 'T0-12', 'T>12'])
+    columns=groupname)
 
 #pathout = '/Volumes/BTU/MITARBEITER/Lowis/results/'
 #pathout = '/Users/robin/Desktop/results'

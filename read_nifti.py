@@ -11,7 +11,10 @@ from scipy.stats import ranksums
 import pylab
 
 #import data
-path1 = 'Z:\MITARBEITER\Lowis\imaging_data_btu'
+#win
+#path1 = 'Z:\MITARBEITER\Lowis\imaging_data_btu'
+#mac
+path1 = '/Volumes/BTU/MITARBEITER/Lowis/'
 path2 = '01_FE1CP014M3\MRI'
 file = 'FE1-014M3_MRI_KM_coreg.nii'
 ni_data = join(path1, path2, file)

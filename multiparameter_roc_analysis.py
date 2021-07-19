@@ -6,6 +6,9 @@ import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
 
 #import data
+#win
+#path = 'Z:\MITARBEITER\Lowis\'
+#mac
 path = '/Volumes/BTU/MITARBEITER/Lowis/'
 file = '_Patiententabelle_Serial_Imaging_BM_anonymized_27052021.xlsx'
 exceldata = pd.read_excel(join(path, file))

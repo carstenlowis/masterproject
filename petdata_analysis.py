@@ -9,7 +9,10 @@ from scipy.stats import ttest_ind_from_stats
 from scipy.stats import ranksums
 
 #import data
-path = 'Z:\MITARBEITER\Lowis'
+#win
+#path = 'Z:\MITARBEITER\Lowis\'
+#mac
+path = '/Volumes/BTU/MITARBEITER/Lowis/'
 file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07072021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 
@@ -21,31 +24,32 @@ groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_t
 
 #give a specific parameter and drop NA
 
-parameter = 'Dyn_2k0_slope' #can be changed to every parameter, the excel table contains
+parameter = 'T1k6_TBR_mean' #can be changed to every parameter, the excel table contains
+groundtruth = 'Ground_Truth_only_largest_metastase' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
-    group = [groupdataT0[[parameter, 'Ground_Truth']].dropna(), groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
+    group = [groupdataT0[[parameter, groundtruth]].dropna(), groupdataT012[[parameter, groundtruth]].dropna(), groupdataT12[[parameter, groundtruth]].dropna()]
 else:
     groupname = ['T0-12', 'T>12']
-    group = [groupdataT012[[parameter, 'Ground_Truth']].dropna(), groupdataT12[[parameter, 'Ground_Truth']].dropna()]
+    group = [groupdataT012[[parameter, groundtruth]].dropna(), groupdataT12[[parameter, groundtruth]].dropna()]
 
 #normalization for negative values?
-if len(groupname) == 3:
-    group_min = [min(group[0][parameter]), min(group[1][parameter]), min(group[2][parameter])]
-    group[0][parameter] = group[0][parameter] - group_min[0]
-    group[1][parameter] = group[1][parameter] - group_min[1]
-    group[2][parameter] = group[2][parameter] - group_min[2]
-else:
-    group_min = [min(group[0][parameter]), min(group[1][parameter])]
-    group[0][parameter] = group[0][parameter] - group_min[0]
-    group[1][parameter] = group[1][parameter] - group_min[1]
+#if len(groupname) == 3:
+#    group_min = [min(group[0][parameter]), min(group[1][parameter]), min(group[2][parameter])]
+#    group[0][parameter] = group[0][parameter] - group_min[0]
+#    group[1][parameter] = group[1][parameter] - group_min[1]
+#    group[2][parameter] = group[2][parameter] - group_min[2]
+#else:
+#    group_min = [min(group[0][parameter]), min(group[1][parameter])]
+#    group[0][parameter] = group[0][parameter] - group_min[0]
+#    group[1][parameter] = group[1][parameter] - group_min[1]
 
 
 #Drop zeros ?
 
-#for i in range(len(groupname)):
-#    group[i]=group[i][group[i][parameter] != 0]
+for i in range(len(groupname)):
+    group[i]=group[i][group[i][parameter] != 0]
 
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
 
@@ -56,7 +60,7 @@ for count in range(len(group)):  #analysis for the different groups
 
     thresholds = group[count].sort_values(by=[parameter])[parameter]
 
-    truth = (group[count]['Ground_Truth'] != 'RI').astype(int)
+    truth = (group[count][groundtruth] != 'RI').astype(int)
 
 #<> ?
 
@@ -97,8 +101,8 @@ for count in range(len(group)):  #analysis for the different groups
 group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, slist, plist= ([] for i in range(10))
 
 for count in range(len(group)):  #divide groups in RI and Relapse
-    groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'RI'], axis=1).transpose())
-    groupRelapse.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count]['Ground_Truth']) if x == 'Relapse'], axis=1).transpose())
+    groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count][groundtruth]) if x == 'RI'], axis=1).transpose())
+    groupRelapse.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count][groundtruth]) if x == 'Relapse'], axis=1).transpose())
 
 for count in range(len(group)):  #calculate mean, std of the different groups
     group_mean.append(np.mean(group[count][parameter]))

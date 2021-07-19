@@ -10,12 +10,14 @@ from scipy.stats import ttest_ind_from_stats
 from scipy.stats import ranksums
 from os import listdir
 import glob
+import shutil
+from sklearn.model_selection import train_test_split
 
 #import data
 #win
-#path = 'Z:\MITARBEITER\Lowis\nn-Unet'
+#path = 'Z:\MITARBEITER\Lowis\data_nnUnet'
 #mac
-path = '/Volumes/BTU/MITARBEITER/Lowis/nn-Unet'
+path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
 imaging_path = join(path, 'nnUnet_imagingdata')
 files = glob.glob(imaging_path+'/*/*.nii')
 
@@ -23,22 +25,22 @@ maskfiles = [file for file in files if file[-8:-3] == 'mask.']
 
 patientids = []
 for i in range(len(maskfiles)):
-    patientids.append(maskfiles[i][len(path)+4:-9])
+    patientids.append(maskfiles[i][len(imaging_path)+4:-9])
 
 petfiles = []
 for i in range(len(patientids)):
     if len(patientids[i]) == 9:
-        petfiles.append(maskfiles[i][:-18]+patientids[i]+'_Sum_coreg.nii')
+        petfiles.append(maskfiles[i][:-18]+patientids[i] + '_Sum_coreg.nii')
     else:
         petfiles.append(maskfiles[i][:-17] + patientids[i] + '_Sum_coreg.nii')
 
-df_files = pd.DataFrame({'maskfiles': maskfiles,
+df_files1 = pd.DataFrame({'maskfiles': maskfiles,
                          'petfiles': petfiles})
 
-df_files = df_files.sort_values(by='maskfiles')
+df_files1 = df_files1.sort_values(by='maskfiles', ignore_index=True)
 
 #create directory
-#taskname = 'Task001_BrainTumor'
+#taskname = 'Task050_BrainPET'
 
 #nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
 #directory = join(path, nnUNetpath , taskname)
@@ -47,10 +49,33 @@ df_files = df_files.sort_values(by='maskfiles')
 #os.makedirs(join(directory, 'imagesTr'))
 #os.makedirs(join(directory, 'imagesTs'))
 #os.makedirs(join(directory, 'labelsTr'))
+#os.makedirs(join(directory, 'labelsTs'))
 
 #copy data in new directory
 
 #create filenames
-img_names = []
-lbl_names = []
+petnames = []
+masknames = []
 for i in range(len(patientids)):
+    petnames.append('brain_'+'{0:04}'.format(i)+'_'+'0000.nii.gz')
+    masknames.append('la_'+'{0:04}'.format(i)+'_'+'0000.nii.gz')
+
+df_files2 = pd.DataFrame({'masknames': masknames,
+                          'petnames': petnames})
+
+df_files = df_files1.join(df_files2)
+
+
+#divide in test and train
+train ,test = train_test_split(list(range(len(patientids))),test_size=0.2, random_state=42)
+
+#copy in new directory
+
+for i in range(len(patientids)):
+    if i in train:
+        shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTr', df_files['masknames'].iloc[i]))
+        shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTr', df_files['petnames'].iloc[i]))
+    else:
+        shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTs', df_files['masknames'].iloc[i]))
+        shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTs', df_files['petnames'].iloc[i]))
+

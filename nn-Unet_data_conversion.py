@@ -32,16 +32,25 @@ for i in range(len(patientids)):
     else:
         petfiles.append(maskfiles[i][:-17] + patientids[i] + '_Sum_coreg.nii')
 
+df_files = pd.DataFrame({'maskfiles': maskfiles,
+                         'petfiles': petfiles})
+
+df_files = df_files.sort_values(by='maskfiles')
+
 #create directory
-taskname = 'Task001_BrainTumor'
+#taskname = 'Task001_BrainTumor'
 
-nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
-directory = join(path, nnUNetpath , taskname)
+#nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
+#directory = join(path, nnUNetpath , taskname)
 
-os.makedirs(directory)
-os.makedirs(join(directory, 'imagesTr'))
-os.makedirs(join(directory, 'imagesTs'))
-os.makedirs(join(directory, 'labelsTr'))
+#os.makedirs(directory)
+#os.makedirs(join(directory, 'imagesTr'))
+#os.makedirs(join(directory, 'imagesTs'))
+#os.makedirs(join(directory, 'labelsTr'))
 
 #copy data in new directory
 
+#create filenames
+img_names = []
+lbl_names = []
+for i in range(len(patientids)):

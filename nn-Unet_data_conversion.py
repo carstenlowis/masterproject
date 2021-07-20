@@ -15,11 +15,13 @@ from sklearn.model_selection import train_test_split
 
 #import data
 #win
-#path = 'Z:\MITARBEITER\Lowis\data_nnUnet'
-#mac
-path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
+path = 'H:\data_nnUnet'
 imaging_path = join(path, 'nnUnet_imagingdata')
-files = glob.glob(imaging_path+'/*/*.nii')
+files = glob.glob(imaging_path+'\*\*.nii')
+#mac
+#path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
+#imaging_path = join(path, 'nnUnet_imagingdata')
+#files = glob.glob(imaging_path+'/*/*.nii')
 
 maskfiles = [file for file in files if file[-8:-3] == 'mask.']
 
@@ -29,10 +31,7 @@ for i in range(len(maskfiles)):
 
 petfiles = []
 for i in range(len(patientids)):
-    if len(patientids[i]) == 9:
-        petfiles.append(maskfiles[i][:-18]+patientids[i] + '_Sum_coreg.nii')
-    else:
-        petfiles.append(maskfiles[i][:-17] + patientids[i] + '_Sum_coreg.nii')
+    petfiles.append(maskfiles[i][:-(len(patientids[i])+9)] + patientids[i] + '_Sum_coreg.nii')
 
 df_files1 = pd.DataFrame({'maskfiles': maskfiles,
                          'petfiles': petfiles})
@@ -40,16 +39,16 @@ df_files1 = pd.DataFrame({'maskfiles': maskfiles,
 df_files1 = df_files1.sort_values(by='maskfiles', ignore_index=True)
 
 #create directory
-#taskname = 'Task050_BrainPET'
+taskname = 'Task050_BrainPET'
 
-#nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
-#directory = join(path, nnUNetpath , taskname)
+nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
+directory = join(path, nnUNetpath , taskname)
 
-#os.makedirs(directory)
-#os.makedirs(join(directory, 'imagesTr'))
-#os.makedirs(join(directory, 'imagesTs'))
-#os.makedirs(join(directory, 'labelsTr'))
-#os.makedirs(join(directory, 'labelsTs'))
+os.makedirs(directory)
+os.makedirs(join(directory, 'imagesTr'))
+os.makedirs(join(directory, 'imagesTs'))
+os.makedirs(join(directory, 'labelsTr'))
+os.makedirs(join(directory, 'labelsTs'))
 
 #copy data in new directory
 
@@ -78,4 +77,8 @@ for i in range(len(patientids)):
     else:
         shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTs', df_files['masknames'].iloc[i]))
         shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTs', df_files['petnames'].iloc[i]))
+    print(i, '/', len(patientids))
 
+#create dataset.json
+#generate_dataset_json(join(directory, 'dataset.json'), join(directory, 'imagesTr'), join(directory, 'imagesTs'), ('PET_sum'),
+#                          {0: 'background', 1: 'tumor'}, 'brain_metastases')

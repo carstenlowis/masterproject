@@ -57,7 +57,7 @@ petnames = []
 masknames = []
 for i in range(len(patientids)):
     petnames.append('brain_'+'{0:04}'.format(i)+'_'+'0000.nii.gz')
-    masknames.append('la_'+'{0:04}'.format(i)+'_'+'0000.nii.gz')
+    masknames.append('brain'+'{0:04}'.format(i)+'.nii.gz')
 
 df_files2 = pd.DataFrame({'masknames': masknames,
                           'petnames': petnames})

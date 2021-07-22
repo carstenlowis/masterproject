@@ -16,9 +16,9 @@ import gzip
 
 #import data
 #win
-path = 'H:\data_nnUnet'
-imaging_path = join(path, 'nnUnet_imagingdata')
-files = glob.glob(imaging_path+'\*\*.nii')
+#path = 'H:\data_nnUnet'
+#imaging_path = join(path, 'nnUnet_imagingdata')
+#files = glob.glob(imaging_path+'\*\*.nii')
 #mac
 #path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
 #imaging_path = join(path, 'nnUnet_imagingdata')
@@ -40,7 +40,7 @@ df_files1 = pd.DataFrame({'maskfiles': maskfiles,
 df_files1 = df_files1.sort_values(by='maskfiles', ignore_index=True)
 
 #create directory
-taskname = 'Task050_BrainPET'
+taskname = 'Task051_BrainPET'
 
 nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
 directory = join(path, nnUNetpath , taskname)

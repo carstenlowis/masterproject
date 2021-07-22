@@ -82,3 +82,4 @@ for i in range(len(patientids)):
 #create dataset.json
 generate_dataset_json(join(directory, 'dataset.json'), join(directory, 'imagesTr'), join(directory, 'imagesTs'), ('PET_sum'),
                           {0: 'background', 1: 'tumor'}, 'brain_metastases')
+

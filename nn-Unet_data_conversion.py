@@ -12,6 +12,7 @@ from os import listdir
 import glob
 import shutil
 from sklearn.model_selection import train_test_split
+import gzip
 
 #import data
 #win
@@ -66,7 +67,7 @@ df_files = df_files1.join(df_files2)
 
 
 #divide in test and train
-train ,test = train_test_split(list(range(len(patientids))),test_size=0.2, random_state=42)
+train ,test = train_test_split(list(range(len(patientids))), test_size=0.2, random_state=42)
 
 #copy in new directory
 

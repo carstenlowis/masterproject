@@ -14,6 +14,7 @@ import shutil
 from sklearn.model_selection import train_test_split
 from nibabel.testing import data_path
 import nibabel as nib
+import gzip
 
 #renaming
 dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task050_BrainPET'
@@ -25,7 +26,22 @@ files2 = glob.glob(join(dir, path2)+'/*')
 
 files=files1+files2
 
-for i in range(len(files)):
-    os.rename(files[i], files[i])
+filesall=glob.glob(dir+'/*/*')
+
+for i in range(len(filesall)):
+    os.rename(filesall[i], filesall[i][:-3])
     print(i)
 
+#zip files
+
+desktop = '/Users/carsten/Desktop'
+file = 'brain_0000_0000.nii'
+pathfile = join(desktop, file)
+
+
+for i in range(len(filesall)):
+    with open(filesall[i], 'rb') as f_in:
+        with gzip.open(filesall[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(filesall[i])
+    print(i)

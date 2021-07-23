@@ -13,6 +13,7 @@ import glob
 import shutil
 from sklearn.model_selection import train_test_split
 import gzip
+import nibabel as nib
 
 #import data
 #win
@@ -20,10 +21,13 @@ import gzip
 #imaging_path = join(path, 'nnUnet_imagingdata')
 #files = glob.glob(imaging_path+'\*\*.nii')
 #mac
+path = '/Users/carsten/Desktop/data_nnUnet_test'
 #path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
-#imaging_path = join(path, 'nnUnet_imagingdata')
-#files = glob.glob(imaging_path+'/*/*.nii')
+imaging_path = join(path, 'nnUnet_imagingdata')
+files = glob.glob(imaging_path+'/*/*.nii')
 
+
+#search for wanted files
 maskfiles = [file for file in files if file[-8:-3] == 'mask.']
 
 patientids = []
@@ -39,8 +43,8 @@ df_files1 = pd.DataFrame({'maskfiles': maskfiles,
 
 df_files1 = df_files1.sort_values(by='maskfiles', ignore_index=True)
 
-#create directory
-taskname = 'Task051_BrainPET'
+#create directory for task
+taskname = 'Task050_BrainPET'
 
 nnUNetpath = 'nnUNet_raw_data_base/nnUNet_raw_data'
 directory = join(path, nnUNetpath , taskname)
@@ -54,11 +58,12 @@ os.makedirs(join(directory, 'labelsTs'))
 #copy data in new directory
 
 #create filenames
+task = 'brain'
 petnames = []
 masknames = []
 for i in range(len(patientids)):
-    petnames.append('brain_'+'{0:04}'.format(i)+'_'+'0000.nii')
-    masknames.append('brain'+'{0:04}'.format(i)+'.nii')
+    petnames.append(task+'_'+'{0:04}'.format(i)+'_'+'0000.nii')
+    masknames.append(task+'_'+'{0:04}'.format(i)+'.nii')
 
 df_files2 = pd.DataFrame({'masknames': masknames,
                           'petnames': petnames})
@@ -78,8 +83,32 @@ for i in range(len(patientids)):
     else:
         shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTs', df_files['masknames'].iloc[i]))
         shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTs', df_files['petnames'].iloc[i]))
-    print(i, '/', len(patientids))
+    print('copy_progress: ', i+1, '/', len(patientids))
+
+#compress files .nii to .nii.gz
+allfiles = glob.glob(directory+'/*/*')
+
+for i in range(len(allfiles)):
+    with open(allfiles[i], 'rb') as f_in:
+        with gzip.open(allfiles[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(allfiles[i])
+    print('zip_progress: ', i+1, '/', len(allfiles))
+
+#set NAN to 0
+allfiles = glob.glob(directory+'/*/*')
+
+for i in range(len(allfiles)):
+    loaded_file = nib.load(allfiles[i])
+    array = loaded_file.get_fdata()
+    inds = np.where(np.isnan(array))
+    array[inds] = 0
+    img = nib.Nifti1Image(array, loaded_file.affine, loaded_file.header)
+    nib.save(img, allfiles[i])
+    print('remove_NAN: ', i + 1, '/', len(allfiles))
 
 #create dataset.json
-generate_dataset_json(join(directory, 'dataset.json'), join(directory, 'imagesTr'), join(directory, 'imagesTs'), ('PET_sum'),
+generate_dataset_json(join(directory, 'dataset.json'), join(directory, 'imagesTr'), join(directory, 'imagesTs'), ('PET_sum',),
                           {0: 'background', 1: 'tumor'}, 'brain_metastases')
+
+print('finished')

@@ -18,18 +18,19 @@ import gzip
 
 #renaming
 dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task050_BrainPET'
+ssd='D:/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task050_BrainPET'
 path1='labelsTr'
 path2='labelsTs'
 
-files1 = glob.glob(join(dir, path1)+'/*')
-files2 = glob.glob(join(dir, path2)+'/*')
+files1 = glob.glob(join(ssd, path1)+'/*')
+files2 = glob.glob(join(ssd, path2)+'/*')
 
 files=files1+files2
 
-filesall=glob.glob(dir+'/*/*')
+filesall2=glob.glob(ssd+'/*/*')
 
-for i in range(len(filesall)):
-    os.rename(filesall[i], filesall[i][:-3])
+for i in range(len(files)):
+    os.rename(files[i], files[i][:-16]+'brain'+files[i][-14:-9]+'.nii')
     print(i)
 
 #zip files
@@ -43,6 +44,9 @@ for i in range(len(filesall)):
     with open(filesall[i], 'rb') as f_in:
         with gzip.open(filesall[i]+'.gz', 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
+    print(i)
+
+for i in range(len(filesall)):
     os.remove(filesall[i])
     print(i)
 
@@ -56,9 +60,9 @@ for i in range(len(filesall)):
 # nan = 0, normalisierung, voxelgrossenverteilung, dice coefficient selber berechnen
 
 #nan to 0
-
-dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data'
-task = 'Task050_BrainPET'
+dir='D:/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data'
+#dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data'
+task = 'Task051_BrainPET'
 fileslabelTr = glob.glob(join(dir, task)+'/labelsTr/*')
 filesimageTr = glob.glob(join(dir, task)+'/imagesTr/*')
 fileslabelTs = glob.glob(join(dir, task)+'/labelsTs/*')
@@ -70,6 +74,8 @@ for i in range(len(files_all)):
     loaded_file = nib.load(files_all[i])
     array = loaded_file.get_fdata()
     inds = np.where(np.isnan(array))
-    arrau[inds] = 0
+    array[inds] = 0
     img = nib.Nifti1Image(array, loaded_file.affine, loaded_file.header)
     nib.save(img, files_all[i])
+    print(i)
+

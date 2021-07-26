@@ -12,9 +12,9 @@ from scipy.stats import ranksums
 #win
 #path = 'Z:\MITARBEITER\Lowis\'
 #mac
-path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07072021.xlsx'
-exceldata = pd.read_excel(join(path, file))
+#path = '/Volumes/BTU/MITARBEITER/Lowis/'
+#file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07072021.xlsx'
+#exceldata = pd.read_excel(join(path, file))
 
 #divide data in groups T0, T0-12, T>12
 
@@ -23,9 +23,10 @@ groupdataT012 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_
 groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T>12' ], axis=1).transpose()
 
 #give a specific parameter and drop NA
+#'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
 
-parameter = 'T1k6_TBR_mean' #can be changed to every parameter, the excel table contains
-groundtruth = 'Ground_Truth_only_largest_metastase' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
+parameter = 'd_T16_Volume' #can be changed to every parameter, the excel table contains
+groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 
 if len(groupdataT0[parameter].dropna()) != 0:
     groupname = ['T0', 'T0-12', 'T>12']
@@ -48,8 +49,8 @@ else:
 
 #Drop zeros ?
 
-for i in range(len(groupname)):
-    group[i]=group[i][group[i][parameter] != 0]
+#for i in range(len(groupname)):
+#    group[i]=group[i][group[i][parameter] != 0]
 
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
 
@@ -64,7 +65,7 @@ for count in range(len(group)):  #analysis for the different groups
 
 #<> ?
 
-    predictions = [(group[count][parameter] >= threshold).astype(int) for threshold in thresholds]
+    predictions = [(group[count][parameter] <= threshold).astype(int) for threshold in thresholds]
 
     cm_array[count] = np.zeros((len(thresholds), 2, 2))
     for i, _ in enumerate(thresholds):

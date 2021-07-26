@@ -16,13 +16,9 @@ import gzip
 import nibabel as nib
 
 #import data
-#win
-#path = 'H:\data_nnUnet'
-#imaging_path = join(path, 'nnUnet_imagingdata')
-#files = glob.glob(imaging_path+'\*\*.nii')
-#mac
-path = '/Users/carsten/Desktop/data_nnUnet_test'
-#path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
+#path = 'H:/data_nnUnet'
+#path = '/Users/carsten/Desktop/data_nnUnet_test'
+path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
 imaging_path = join(path, 'nnUnet_imagingdata')
 files = glob.glob(imaging_path+'/*/*.nii')
 

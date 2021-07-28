@@ -9,18 +9,35 @@ import seaborn as sns
 from scipy.stats import ttest_ind_from_stats
 from scipy.stats import ranksums
 import pylab
+import nibabel as nib
+import math
 
 #import data
 #win
 #path1 = 'Z:\MITARBEITER\Lowis\imaging_data_btu'
 #mac
-path1 = '/Volumes/BTU/MITARBEITER/Lowis/'
-path2 = '01_FE1CP014M3\MRI'
-file = 'FE1-014M3_MRI_KM_coreg.nii'
-ni_data = join(path1, path2, file)
+dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data'
+task = 'Task050_BrainPET'
+fileslabelTr = glob.glob(join(dir, task)+'/labelsTr/*')
+filesimageTr = glob.glob(join(dir, task)+'/imagesTr/*')
+fileslabelTs = glob.glob(join(dir, task)+'/labelsTs/*')
+filesimageTs = glob.glob(join(dir, task)+'/imagesTs/*')
 
-test = sitk.ReadImage(ni_data)
 
-z = 0
-slice = sitk.GetArrayFromImage(test)[z,:,:]
-plt.imshow(slice)
+
+for i in range(len(fileslabelTs)):
+	mask = nib.load(fileslabelTs[i]).get_data()
+	min = mask.min()
+	if math.isnan(min):
+		print(i,'nan')
+	else:
+		print(i,'no nan')
+
+for i in range(len(filesimagesTs)):
+	mask = nib.load(filesimagesTs[i]).get_data()
+	max = mask.max()
+	print(max)
+#	if max == 1:
+#		print(i,'max is 1')
+#	else:
+#		print(i,'max is not 1')

@@ -79,3 +79,34 @@ for i in range(len(files_all)):
     nib.save(img, files_all[i])
     print(i)
 
+#some statistics
+#import data
+path = 'Z:/MITARBEITER/Lowis/data_nnUnet'
+#path = 'H:/data_nnUnet'
+#path = '/Users/carsten/Desktop/data_nnUnet_test'
+#path = '/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet'
+imaging_path = join(path, 'nnUnet_imagingdata')
+files = glob.glob(imaging_path+'/*/*.nii')
+
+
+#search for wanted files
+maskfiles = [file for file in files if 'mask' in file]
+
+patientids = []
+for i in range(len(maskfiles)):
+    a = maskfiles[i][55:maskfiles[i][55:].find('_')+55]
+    if a[-1].isnumeric():
+        patientids.append(a[:-1])
+    else:
+        patientids.append(a)
+
+patientids = list(set(patientids))
+
+
+male = 0
+female = 0
+for i in range(len(patientids)):
+    if 'M' in patientids[i][4:]:
+        male = male + 1
+    else:
+        female = female + 1

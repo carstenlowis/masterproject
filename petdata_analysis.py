@@ -1,4 +1,5 @@
 from os.path import join
+import os
 import pandas as pd
 import numpy as np
 from sklearn import metrics
@@ -8,32 +9,41 @@ import seaborn as sns
 from scipy.stats import ttest_ind_from_stats
 from scipy.stats import ranksums
 
+#settings
+#'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
+parameter = 'T1k6_TBR_mean' #can be changed to every parameter, the excel table contains
+groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase' or 'Ground_Truth_last_measurement'
+drop_0 = 'y' #drop zeros? 'y' or 'n'
+thresh = '>' #'<'>'  > normaly
+saveoutput = 'y' #save output? 'y' or 'n'
+
 #import data
 #win
-#path = 'Z:\MITARBEITER\Lowis\'
+path = 'Z:/MITARBEITER/Lowis/'
 #mac
 #path = '/Volumes/BTU/MITARBEITER/Lowis/'
-#file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07072021.xlsx'
-#exceldata = pd.read_excel(join(path, file))
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_28072021.xlsx'
+exceldata = pd.read_excel(join(path, file))
+#output path
+fileout = 'out_' + groundtruth + '_' + parameter + '.xlsx'
+pathout = path + 'results' + '/' + groundtruth + '_' + parameter
+dataout = pathout + '/' + fileout
 
 #divide data in groups T0, T0-12, T>12
 
 groupdataT0 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T0' ], axis=1).transpose()
 groupdataT012 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T0-12' ], axis=1).transpose()
 groupdataT12 = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['d_time']) if x == 'T>12' ], axis=1).transpose()
+groupdatalast = pd.concat([exceldata.iloc[i] for i, x in enumerate(exceldata['Ground_Truth_last_measurement']) if type(x) == str ], axis=1).transpose()
 
-#give a specific parameter and drop NA
-#'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
-
-parameter = 'd_T16_Volume' #can be changed to every parameter, the excel table contains
-groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
+#drop NA
 
 if len(groupdataT0[parameter].dropna()) != 0:
-    groupname = ['T0', 'T0-12', 'T>12']
-    group = [groupdataT0[[parameter, groundtruth]].dropna(), groupdataT012[[parameter, groundtruth]].dropna(), groupdataT12[[parameter, groundtruth]].dropna()]
+    groupname = ['T0', 'T0-12', 'T>12', 'last_measurement']
+    group = [groupdataT0[[parameter, groundtruth, 'time_since_first_scan']].dropna(), groupdataT012[[parameter, groundtruth, 'time_since_first_scan']].dropna(), groupdataT12[[parameter, groundtruth, 'time_since_first_scan']].dropna(), groupdatalast[[parameter, groundtruth, 'time_since_first_scan']].dropna()]
 else:
-    groupname = ['T0-12', 'T>12']
-    group = [groupdataT012[[parameter, groundtruth]].dropna(), groupdataT12[[parameter, groundtruth]].dropna()]
+    groupname = ['T0-12', 'T>12', 'last_measurement']
+    group = [groupdataT012[[parameter, groundtruth, 'time_since_first_scan']].dropna(), groupdataT12[[parameter, groundtruth, 'time_since_first_scan']].dropna(), groupdatalast[[parameter, groundtruth, 'time_since_first_scan']].dropna()]
 
 #normalization for negative values?
 #if len(groupname) == 3:
@@ -48,9 +58,9 @@ else:
 
 
 #Drop zeros ?
-
-#for i in range(len(groupname)):
-#    group[i]=group[i][group[i][parameter] != 0]
+if drop_0 == 'y':
+    for i in range(len(groupname)):
+        group[i]=group[i][group[i][parameter] != 0]
 
 #group[0] is T0, group[1] is T0-12, group[2] is T>12 or (if T0 is not available) T0-12 is group[0] and T>12 ist group[1]
 
@@ -63,9 +73,11 @@ for count in range(len(group)):  #analysis for the different groups
 
     truth = (group[count][groundtruth] != 'RI').astype(int)
 
-#<> ?
+    if thresh == '>':
+        predictions = [(group[count][parameter] >= threshold).astype(int) for threshold in thresholds]
 
-    predictions = [(group[count][parameter] <= threshold).astype(int) for threshold in thresholds]
+    elif thresh == '<':
+        predictions = [(group[count][parameter] <= threshold).astype(int) for threshold in thresholds]
 
     cm_array[count] = np.zeros((len(thresholds), 2, 2))
     for i, _ in enumerate(thresholds):
@@ -99,7 +111,7 @@ for count in range(len(group)):  #analysis for the different groups
 
 #statistical operations
 
-group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, slist, plist= ([] for i in range(10))
+group_mean, group_std, groupRelapse, groupRI, groupRelapse_mean, groupRelapse_std, groupRI_mean, groupRI_std, slist, plist, t_mean, t_std= ([] for i in range(12))
 
 for count in range(len(group)):  #divide groups in RI and Relapse
     groupRI.append(pd.concat([group[count].iloc[i] for i, x in enumerate(group[count][groundtruth]) if x == 'RI'], axis=1).transpose())
@@ -112,16 +124,17 @@ for count in range(len(group)):  #calculate mean, std of the different groups
     groupRelapse_std.append(np.std(groupRelapse[count][parameter]))
     groupRI_mean.append(np.mean(groupRI[count][parameter]))
     groupRI_std.append(np.std(groupRI[count][parameter]))
+    t_mean.append(np.mean(group[count]['time_since_first_scan']))
+    t_std.append(np.std(group[count]['time_since_first_scan']))
 
 #normalization for negative values?
-bestthreshold
 
 #
 
 #plot
 
 for i in range(len(group)):
-    plt.figure(groupname[i])
+    plt.figure(groupname[i]+'_plot')
     plt.plot(result[i]['fpr'].values, result[i]['tpr'].values, label='ROC curve (area = %0.2f, best threshold = %0.2f, n=%0.0f)' %(auc[i], bestthreshold[i], len(result[i]['tpr'])))
     plt.plot([0, 1], [0, 1])
     plt.xlabel('False Positive Rate')
@@ -164,7 +177,7 @@ for count in range(len(group)):  #calculate t and p of the different groups
 
 #excel output
 
-bestthreshold_TN, bestthreshold_FP, bestthreshold_FN, bestthreshold_TP, youdenthreshold_TN, youdenthreshold_FP, youdenthreshold_FN, youdenthreshold_TP, n, nRI, nRelapse = ([] for i in range(11))
+bestthreshold_TN, bestthreshold_FP, bestthreshold_FN, bestthreshold_TP, youdenthreshold_TN, youdenthreshold_FP, youdenthreshold_FN, youdenthreshold_TP, n, nRI, nRelapse, accuracy, specificity = ([] for i in range(13))
 
 for i in range(len(groupname)):
     bestthreshold_TN.append(result[i]['TN'][np.argmax(result[i]['multiplication'])])
@@ -178,6 +191,8 @@ for i in range(len(groupname)):
     n.append(len(group[i]))
     nRI.append(len(groupRI[i]))
     nRelapse.append(len(groupRelapse[i]))
+    accuracy.append((bestthreshold_TP[i]+bestthreshold_TN[i])/(bestthreshold_TP[i]+bestthreshold_TN[i]+bestthreshold_FP[i]+bestthreshold_FN[i]))
+    specificity.append(bestthreshold_TN[i]/(bestthreshold_TN[i]+bestthreshold_FP[i]))
 
 output = pd.DataFrame(
     np.array([auc, slist, plist,
@@ -187,7 +202,8 @@ output = pd.DataFrame(
               youdenthreshold_FN, youdenthreshold_TP,
               group_mean, group_std, n,
               groupRI_mean, groupRI_std, nRI,
-              groupRelapse_mean, groupRelapse_std, nRelapse]),
+              groupRelapse_mean, groupRelapse_std, nRelapse,
+              t_mean, t_std, accuracy, specificity]),
     index=['AUC', 's_mann_whitney', 'p_mann_whitney',
             'Best_Threshold', 'Best_Threshold_TN', 'Best_Threshold_FP',
             'Best_Threshold_FN', 'Best_Threshold_TP',
@@ -195,16 +211,17 @@ output = pd.DataFrame(
             'Youden_Threshold_FN', 'Youden_Threshold_TP',
             'mean', 'std', 'n',
             'RI_mean', 'RI_std', 'RI_n',
-            'Relapse_mean', 'Relapse_std', 'Relapse_n'],
+            'Relapse_mean', 'Relapse_std', 'Relapse_n',
+            'time_mean', 'time_std', 'accuracy', 'specificity'],
     columns=groupname)
 
-#pathout = '/Volumes/BTU/MITARBEITER/Lowis/results/'
-#pathout = '/Users/robin/Desktop/results'
-#fileout = 'output.xlsx'
-#dataout = join(pathout, fileout)
 
-#writer = pd.ExcelWriter(dataout, engine='openpyxl', mode='a')
-#output.to_excel(writer, sheet_name=parameter)
-#writer.save()
+if saveoutput == 'y':
+    os.makedirs(pathout)
+    output.to_excel(dataout)
+    figs = [plt.figure(n) for n in plt.get_fignums()]
+    for i, fig in enumerate(figs):
+        pdfname = 'fig_out_' + groundtruth + '_' + parameter + '_' + str(i) + '.pdf'
+        fig.savefig(join(pathout, pdfname), format='pdf')
 
 print(output)

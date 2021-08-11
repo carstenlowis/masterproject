@@ -11,22 +11,25 @@ from scipy.stats import ranksums
 
 #settings
 #'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
-parameter = 'T1k6_TBR_mean' #can be changed to every parameter, the excel table contains
-groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase' or 'Ground_Truth_last_measurement'
-drop_0 = 'y' #drop zeros? 'y' or 'n'
+parameter = 'Dyn_max100vx_slope' #can be changed to every parameter, the excel table contains
+#groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
+groundtruth = 'Ground_Truth_only_largest_metastase' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
+#drop_0 = 'without_zeros' #drop zeros? 'with_zeros' or 'without_zeros'
+drop_0 = 'with_zeros' #drop zeros? 'with_zeros' or 'without_zeros'
 thresh = '>' #'<'>'  > normaly
 saveoutput = 'y' #save output? 'y' or 'n'
+#saveoutput = 'n' #save output? 'y' or 'n'
 
 #import data
 #win
 path = 'Z:/MITARBEITER/Lowis/'
 #mac
 #path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_28072021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_11082021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 #output path
 fileout = 'out_' + groundtruth + '_' + parameter + '.xlsx'
-pathout = path + 'results' + '/' + groundtruth + '_' + parameter
+pathout = path + 'results' + '/' + groundtruth + '_' + parameter + '_' + drop_0
 dataout = pathout + '/' + fileout
 
 #divide data in groups T0, T0-12, T>12
@@ -58,7 +61,7 @@ else:
 
 
 #Drop zeros ?
-if drop_0 == 'y':
+if drop_0 == 'without_zeros':
     for i in range(len(groupname)):
         group[i]=group[i][group[i][parameter] != 0]
 
@@ -169,7 +172,7 @@ for i in range(len(groupname)):
 
 #mann whitney u test between RI and Relapsed
 
-for count in range(len(group)):  #calculate t and p of the different groups
+for count in range(len(group)):  #calculate s and p of the different groups
     s, p = ranksums(groupRI[count][parameter], groupRelapse[count][parameter])
 
     slist.append(s)

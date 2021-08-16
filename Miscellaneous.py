@@ -17,7 +17,7 @@ import nibabel as nib
 import gzip
 
 #renaming
-dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task050_BrainPET'
+dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task004_Hippocampus'
 ssd='D:/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task050_BrainPET'
 path1='labelsTr'
 path2='labelsTs'
@@ -33,6 +33,11 @@ for i in range(len(files)):
     os.rename(files[i], files[i][:-16]+'brain'+files[i][-14:-9]+'.nii')
     print(i)
 
+#hippocampus
+files=glob.glob(dir+'/*/*')
+for i in range(len(files)):
+    os.rename(files[i], files[i][:-7]+'_0000'+files[i][-7:])
+#nnUNet_train 3d_fullres nnUNetTrainerV2 Task0004_Hippocampus FOLD --npz
 #zip files
 
 desktop = '/Users/carsten/Desktop'
@@ -110,3 +115,5 @@ for i in range(len(patientids)):
         male = male + 1
     else:
         female = female + 1
+
+#

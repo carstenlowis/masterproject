@@ -69,17 +69,24 @@ df_files = df_files1.join(df_files2)
 
 
 #divide in test and train
-train ,test = train_test_split(list(range(len(patientids))), test_size=0.2, random_state=42)
+train, test = train_test_split(list(range(len(patientids))), test_size=0.2, random_state=42)
 
 #copy in new directory
+copylog = pd.DataFrame(columns = ['mask_origin', 'mask_destination', 'image_origin', 'image_destination'])
 
 for i in range(len(patientids)):
+    mask_origin = df_files['maskfiles'].iloc[i]
+    image_origin = df_files['petfiles'].iloc[i]
+    mask_destination = join(directory, 'labelsTr', df_files['masknames'].iloc[i])
+    image_destination = join(directory, 'imagesTr', df_files['petnames'].iloc[i])
     if i in train:
-        shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTr', df_files['masknames'].iloc[i]))
-        shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTr', df_files['petnames'].iloc[i]))
+        shutil.copyfile(mask_origin, mask_destination)
+        shutil.copyfile(image_origin, image_destination)
     else:
-        shutil.copyfile(df_files['maskfiles'].iloc[i], join(directory, 'labelsTs', df_files['masknames'].iloc[i]))
-        shutil.copyfile(df_files['petfiles'].iloc[i], join(directory, 'imagesTs', df_files['petnames'].iloc[i]))
+        shutil.copyfile(mask_origin, mask_destination)
+        shutil.copyfile(image_origin, image_destination)
+    temp_log = pd.DataFrame([[mask_origin, mask_destination, image_origin, image_destination]], columns = ['mask_origin', 'mask_destination', 'image_origin', 'image_destination'], index = i)
+    copylog.append(temp_log)
     print('copy_progress: ', i+1, '/', len(patientids))
 
 #compress files .nii to .nii.gz

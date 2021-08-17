@@ -11,7 +11,7 @@ from scipy.stats import ranksums
 
 #settings
 #'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
-parameter = 'Dyn_max100vx_slope' #can be changed to every parameter, the excel table contains
+parameter = 'T1k6_rSUV_100' #can be changed to every parameter, the excel table contains
 #groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 groundtruth = 'Ground_Truth_only_largest_metastase' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 #drop_0 = 'without_zeros' #drop zeros? 'with_zeros' or 'without_zeros'

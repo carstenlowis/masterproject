@@ -77,12 +77,14 @@ copylog = pd.DataFrame(columns = ['mask_origin', 'mask_destination', 'image_orig
 for i in range(len(patientids)):
     mask_origin = df_files['maskfiles'].iloc[i]
     image_origin = df_files['petfiles'].iloc[i]
-    mask_destination = join(directory, 'labelsTr', df_files['masknames'].iloc[i])
-    image_destination = join(directory, 'imagesTr', df_files['petnames'].iloc[i])
     if i in train:
+        mask_destination = join(directory, 'labelsTr', df_files['masknames'].iloc[i])
+        image_destination = join(directory, 'imagesTr', df_files['petnames'].iloc[i])
         shutil.copyfile(mask_origin, mask_destination)
         shutil.copyfile(image_origin, image_destination)
     else:
+        mask_destination = join(directory, 'labelsTr', df_files['masknames'].iloc[i])
+        image_destination = join(directory, 'imagesTr', df_files['petnames'].iloc[i])
         shutil.copyfile(mask_origin, mask_destination)
         shutil.copyfile(image_origin, image_destination)
     temp_log = pd.DataFrame([[mask_origin, mask_destination, image_origin, image_destination]], columns = ['mask_origin', 'mask_destination', 'image_origin', 'image_destination'], index = i)

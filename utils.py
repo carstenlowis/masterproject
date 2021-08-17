@@ -16,7 +16,7 @@
 
 from typing import Tuple
 import numpy as np
-from batchgenerators.utilities.file_and_folder_operations import *
+#from batchgenerators.utilities.file_and_folder_operations import *
 
 
 def get_identifiers_from_splitted_files(folder: str):

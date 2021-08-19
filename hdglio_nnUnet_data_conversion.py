@@ -1,20 +1,11 @@
-from os.path import isfile, join
-import os
+from os.path import join
+
 import pandas as pd
-import numpy as np
-from sklearn import metrics
-import matplotlib.pylab as plt
-import matplotlib.gridspec as gridspec
-import seaborn as sns
-from scipy.stats import ttest_ind_from_stats
-from scipy.stats import ranksums
-from os import listdir
+
 import glob
 import shutil
 from sklearn.model_selection import train_test_split
-from nibabel.testing import data_path
-import nibabel as nib
-import gzip
+
 
 #import datanames
 dir = 'H:/hdglio_data'

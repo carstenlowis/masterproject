@@ -116,4 +116,15 @@ for i in range(len(patientids)):
     else:
         female = female + 1
 
-#
+#copy some data
+
+source = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/BIOPSY_STUDY'
+dest = 'H:/BIOPSY_STUDY_seg'
+
+voi_files = glob.glob(source+'/*/_nii/*.voi')
+nii_files = glob.glob(source+'/*/_nii/*T1KM.nii')
+
+for i in range(len(voi_files)):
+    os.mkdir(dest + '/' + voi_files[i][53:56])
+    shutil.copyfile(voi_files[i], dest + '/' + voi_files[i][53:56] + '/' + voi_files[i][62:])
+    shutil.copyfile(nii_files[i], dest + '/' + nii_files[i][53:56] + '/' + nii_files[i][62:])

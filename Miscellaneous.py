@@ -123,7 +123,7 @@ dest = 'H:/BIOPSY_STUDY_seg'
 
 voi_files = glob.glob(source+'/*/_nii/*.voi')
 nii_files = glob.glob(source+'/*/_nii/*T1KM.nii')
-mask_files = glob.glob(dest+'/*/*Mask__*_T1KM.nii')
+mask_files = glob.glob(dest+'/*/*Mask__*_T1KM.nii.gz')
 
 for i in range(len(voi_files)):
     os.mkdir(dest + '/' + voi_files[i][53:56])
@@ -131,5 +131,13 @@ for i in range(len(voi_files)):
     shutil.copyfile(nii_files[i], dest + '/' + nii_files[i][53:56] + '/' + nii_files[i][62:])
 
 for i in range(len(mask_files)):
-    shutil.copyfile(mask_files[i], source+'/'+mask_files[i][20:23]+'/_nii/'+'mask1_'+mask_files[i][-19:])
+    shutil.copyfile(mask_files[i], source+'/'+mask_files[i][20:23]+'/_nii/'+'mask1_'+mask_files[i][-22:])
     print(i,'/', len(mask_files))
+
+
+for i in range(len(mask_files)):
+    with open(mask_files[i], 'rb') as f_in:
+        with gzip.open(mask_files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(mask_files[i])
+    print('zip_progress: ', i+1, '/', len(mask_files))

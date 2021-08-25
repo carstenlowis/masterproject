@@ -123,8 +123,13 @@ dest = 'H:/BIOPSY_STUDY_seg'
 
 voi_files = glob.glob(source+'/*/_nii/*.voi')
 nii_files = glob.glob(source+'/*/_nii/*T1KM.nii')
+mask_files = glob.glob(dest+'/*/*Mask__*_T1KM.nii')
 
 for i in range(len(voi_files)):
     os.mkdir(dest + '/' + voi_files[i][53:56])
     shutil.copyfile(voi_files[i], dest + '/' + voi_files[i][53:56] + '/' + voi_files[i][62:])
     shutil.copyfile(nii_files[i], dest + '/' + nii_files[i][53:56] + '/' + nii_files[i][62:])
+
+for i in range(len(mask_files)):
+    shutil.copyfile(mask_files[i], source+'/'+mask_files[i][20:23]+'/_nii/'+'mask1_'+mask_files[i][-19:])
+    print(i,'/', len(mask_files))

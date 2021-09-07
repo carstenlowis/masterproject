@@ -18,7 +18,7 @@ import nibabel as nib
 import gzip
 from collections import Counter
 
-path = 'H:/Task053_BrainPET/'
+path = 'H:/Task060_hdglio/'
 
 
 images = glob.glob(path + 'Images/*')
@@ -28,10 +28,10 @@ predictions = glob.glob(path + 'Predictions/*')
 
 dices=[]
 
-for i in range(len(images)):
+for i in range(len(truth)):
     t = nib.load(truth[i])
     t = np.array(t.dataobj)
-    t = t[:,:,:,0]
+    #t = t[:,:,:,0]
     p = nib.load(predictions[i])
     p = np.array(p.dataobj)
     sum= t + p

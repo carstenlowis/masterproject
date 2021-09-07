@@ -25,7 +25,7 @@ saveoutput = 'y' #save output? 'y' or 'n'
 path = 'Z:/MITARBEITER/Lowis/'
 #mac
 #path = '/Volumes/BTU/MITARBEITER/Lowis/'
-file = '_Patiententabelle_Serial_Imaging_BM_anonymized_11082021.xlsx'
+file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07092021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 #output path
 fileout = 'out_' + groundtruth + '_' + parameter + '.xlsx'
@@ -166,7 +166,6 @@ for i in range(len(groupname)):
     ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=8, verticalalignment='top')
     plt.show()
 
-#histogramm
 
 
 
@@ -219,12 +218,21 @@ output = pd.DataFrame(
     columns=groupname)
 
 
-if saveoutput == 'y':
-    os.makedirs(pathout)
-    output.to_excel(dataout)
-    figs = [plt.figure(n) for n in plt.get_fignums()]
-    for i, fig in enumerate(figs):
-        pdfname = 'fig_out_' + groundtruth + '_' + parameter + '_' + str(i) + '.pdf'
-        fig.savefig(join(pathout, pdfname), format='pdf')
+#if saveoutput == 'y':
+#    os.makedirs(pathout)
+#    output.to_excel(dataout)
+#    figs = [plt.figure(n) for n in plt.get_fignums()]
+#    for i, fig in enumerate(figs):
+#        pdfname = 'fig_out_' + groundtruth + '_' + parameter + '_' + str(i) + '.pdf'
+#        fig.savefig(join(pathout, pdfname), format='pdf')
+
+
 
 print(output)
+
+#new plot
+fig, axes = plt.subplots(ncols = 2)
+DF1 = pd.DataFrame({'T0': groupRI[0][parameter], 'T0-12': groupRI[1][parameter], 'T>12': groupRI[2][parameter]})
+DF2 = pd.DataFrame({'T0': groupRelapse[0][parameter], 'T0-12': groupRelapse[1][parameter], 'T>12': groupRelapse[2][parameter]})
+DF1.plot(ax=axes[0], kind='box', title='Radiation Necrosis', showmeans=True)
+DF2.plot(ax=axes[1], kind='box', title='Tumour Progression', showmeans=True)

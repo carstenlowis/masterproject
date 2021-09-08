@@ -252,4 +252,4 @@ axes[2].set_ylabel('True Positive Rate')
 axes[2].set_ylim((-0.05, 1.05))
 axes[2].set_xlim((-0.05, 1.05))
 
-fig.savefig('/Volumes/BTU/MITARBEITER/Lowis/test.eps', format='eps')
+fig.savefig(('/Volumes/BTU/MITARBEITER/Lowis/' + parameter + '.eps'), format='eps')

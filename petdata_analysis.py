@@ -22,9 +22,9 @@ saveoutput = 'y' #save output? 'y' or 'n'
 
 #import data
 #win
-path = 'Z:/MITARBEITER/Lowis/'
+#path = 'Z:/MITARBEITER/Lowis/'
 #mac
-#path = '/Volumes/BTU/MITARBEITER/Lowis/'
+path = '/Volumes/BTU/MITARBEITER/Lowis/'
 file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07092021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 #output path
@@ -231,8 +231,25 @@ output = pd.DataFrame(
 print(output)
 
 #new plot
-fig, axes = plt.subplots(ncols = 2)
+fig, axes = plt.subplots(ncols = 3, figsize=(12, 4))
 DF1 = pd.DataFrame({'T0': groupRI[0][parameter], 'T0-12': groupRI[1][parameter], 'T>12': groupRI[2][parameter]})
 DF2 = pd.DataFrame({'T0': groupRelapse[0][parameter], 'T0-12': groupRelapse[1][parameter], 'T>12': groupRelapse[2][parameter]})
-DF1.plot(ax=axes[0], kind='box', title='Radiation Necrosis', showmeans=True)
-DF2.plot(ax=axes[1], kind='box', title='Tumour Progression', showmeans=True)
+
+
+DF1.plot(ax=axes[0], kind='box', title='Radiation Necrosis')
+DF2.plot(ax=axes[1], kind='box', title='Tumour Progression')
+axes[0].set_ylim((-0.2, np.max(exceldata[parameter])+0.2))
+axes[1].set_ylim((-0.2, np.max(exceldata[parameter])+0.2))
+
+axes[2].plot(result[0]['fpr'].values, result[0]['tpr'].values)
+axes[2].plot(result[1]['fpr'].values, result[1]['tpr'].values)
+axes[2].plot(result[2]['fpr'].values, result[2]['tpr'].values)
+axes[2].plot([0, 1], [0, 1])
+axes[2].set_title('ROC curves')
+axes[2].legend(['T0', 'T0-12', 'T>12'], loc="lower right", frameon = False)
+axes[2].set_xlabel('False Positive Rate')
+axes[2].set_ylabel('True Positive Rate')
+axes[2].set_ylim((-0.05, 1.05))
+axes[2].set_xlim((-0.05, 1.05))
+
+fig.savefig('/Volumes/BTU/MITARBEITER/Lowis/test.eps', format='eps')

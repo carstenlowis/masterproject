@@ -48,3 +48,17 @@ for i in range(len(truth)):
     combined_mask = nib.Nifti1Image(combined_mask, image.affine, image.header)
     nib.save(combined_mask, path+'combined/'+truth[i][-17:])
 
+
+#mask analysis
+table = []
+for i in range(len(truth)):
+    image = nib.load(truth[i])
+    image = np.array(image.dataobj)
+    image = image[:,:,:,0]
+    label_image = measure.label(image > 0, connectivity=image.ndim)
+    properties = ['label', 'area', 'centroid']
+    t = pd.DataFrame(measure.regionprops_table(label_image, properties=properties))
+    table.append(t)
+    print(np.max(label_image))
+    print(np.max(image))
+    print('next')

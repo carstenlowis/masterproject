@@ -11,20 +11,20 @@ from scipy.stats import ranksums
 
 #settings
 #'T1k6_TBR_mean'T1k6_rSUV_100'T2k0_Volume'd_T16_Volume'Dyn_max100vx_slope'
-parameter = 'T1k6_rSUV_100' #can be changed to every parameter, the excel table contains
+parameter = 'T2k0_Volume' #can be changed to every parameter, the excel table contains
 #groundtruth = 'Ground_Truth' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 groundtruth = 'Ground_Truth_only_largest_metastase' #'Ground_Truth' or 'Ground_Truth_only_largest_metastase'
 #drop_0 = 'without_zeros' #drop zeros? 'with_zeros' or 'without_zeros'
 drop_0 = 'with_zeros' #drop zeros? 'with_zeros' or 'without_zeros'
 thresh = '>' #'<'>'  > normaly
-saveoutput = 'y' #save output? 'y' or 'n'
-#saveoutput = 'n' #save output? 'y' or 'n'
+#saveoutput = 'y' #save output? 'y' or 'n'
+saveoutput = 'n' #save output? 'y' or 'n'
 
 #import data
 #win
-#path = 'Z:/MITARBEITER/Lowis/'
+path = 'Z:/MITARBEITER/Lowis/'
 #mac
-path = '/Volumes/BTU/MITARBEITER/Lowis/'
+#path = '/Volumes/BTU/MITARBEITER/Lowis/'
 file = '_Patiententabelle_Serial_Imaging_BM_anonymized_07092021.xlsx'
 exceldata = pd.read_excel(join(path, file))
 #output path
@@ -218,13 +218,13 @@ output = pd.DataFrame(
     columns=groupname)
 
 
-#if saveoutput == 'y':
-#    os.makedirs(pathout)
-#    output.to_excel(dataout)
-#    figs = [plt.figure(n) for n in plt.get_fignums()]
-#    for i, fig in enumerate(figs):
-#        pdfname = 'fig_out_' + groundtruth + '_' + parameter + '_' + str(i) + '.pdf'
-#        fig.savefig(join(pathout, pdfname), format='pdf')
+if saveoutput == 'y':
+    os.makedirs(pathout)
+    output.to_excel(dataout)
+    figs = [plt.figure(n) for n in plt.get_fignums()]
+    for i, fig in enumerate(figs):
+        pdfname = 'fig_out_' + groundtruth + '_' + parameter + '_' + str(i) + '.pdf'
+        fig.savefig(join(pathout, pdfname), format='pdf')
 
 
 
@@ -236,10 +236,12 @@ DF1 = pd.DataFrame({'T0': groupRI[0][parameter], 'T0-12': groupRI[1][parameter],
 DF2 = pd.DataFrame({'T0': groupRelapse[0][parameter], 'T0-12': groupRelapse[1][parameter], 'T>12': groupRelapse[2][parameter]})
 
 
-DF1.plot(ax=axes[0], kind='box', title='Radiation Necrosis')
-DF2.plot(ax=axes[1], kind='box', title='Tumour Progression')
+DF1.plot(ax=axes[0], kind='box', title='Radiation necrosis')
+DF2.plot(ax=axes[1], kind='box', title='Tumor recurrence')
 axes[0].set_ylim((-0.2, np.max(exceldata[parameter])+0.2))
 axes[1].set_ylim((-0.2, np.max(exceldata[parameter])+0.2))
+axes[0].set_ylabel('Volume [mL]')
+axes[1].set_ylabel('Volume [mL]')
 
 axes[2].plot(result[0]['fpr'].values, result[0]['tpr'].values)
 axes[2].plot(result[1]['fpr'].values, result[1]['tpr'].values)
@@ -247,9 +249,9 @@ axes[2].plot(result[2]['fpr'].values, result[2]['tpr'].values)
 axes[2].plot([0, 1], 'k--')
 axes[2].set_title('ROC curves')
 axes[2].legend(['T0', 'T0-12', 'T>12'], loc="lower right", frameon = False)
-axes[2].set_xlabel('False Positive Rate')
-axes[2].set_ylabel('True Positive Rate')
+axes[2].set_xlabel('False positive rate')
+axes[2].set_ylabel('True positive rate')
 axes[2].set_ylim((-0.05, 1.05))
 axes[2].set_xlim((-0.05, 1.05))
 
-fig.savefig(('/Volumes/BTU/MITARBEITER/Lowis/' + parameter + '.eps'), format='eps')
+fig.savefig(('Z:MITARBEITER/Lowis/results/' + parameter + '.pdf'), format='pdf')

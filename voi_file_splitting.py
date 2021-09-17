@@ -4,10 +4,10 @@ import glob
 path = 'H:/Pmod_test/'
 voi_file = glob.glob(path+'/*.voi')
 
+os.mkdir(path + 'voi/')
+
 for count in range(len(voi_file)):
-    #copy data into folder and converion from .voi to .txt
-    copy_path = voi_file[count][:-4]
-    os.mkdir(copy_path)
+    #converion from .voi to .txt
     #read data
     orig = open(voi_file[count], 'r')
     orig = orig.read()
@@ -24,7 +24,6 @@ for count in range(len(voi_file)):
     for i in range(len(orig)):
         if '</UID>' in orig[i][-6:]:
             voi_index.append(i)
-
             names.append(orig[i+1][:orig[i+1].find('#')])
         elif '#END OF VOIS DEFINITION' in orig[i]:
             voi_index.append(i-1)
@@ -36,8 +35,9 @@ for count in range(len(voi_file)):
         temp = orig[voi_index[i]:voi_index[i+1]-1]
         new = header + temp + bottom
         name = voi_file[count][len(path):-4] + '_VOI_' + names[i][:-1] + '.voi'
+        new [19] = names[i] + '# voi_name'
 
-        f = open(copy_path + '/' + name, 'x')
+        f = open(path + '/voi/' + name, 'x')
         f.write('\n'.join(new))
         f.close()
 

@@ -228,10 +228,16 @@ if saveoutput == 'y':
 
 
 
+
 print(output)
 
 #new plot
+font = {'size'   : 15}
+
+plt.rc('font', **font)
+
 fig, axes = plt.subplots(ncols = 3, figsize=(12, 4))
+fig.tight_layout()
 DF1 = pd.DataFrame({'T0': groupRI[0][parameter], 'T0-12': groupRI[1][parameter], 'T>12': groupRI[2][parameter]})
 DF2 = pd.DataFrame({'T0': groupRelapse[0][parameter], 'T0-12': groupRelapse[1][parameter], 'T>12': groupRelapse[2][parameter]})
 
@@ -253,5 +259,6 @@ axes[2].set_xlabel('False positive rate')
 axes[2].set_ylabel('True positive rate')
 axes[2].set_ylim((-0.05, 1.05))
 axes[2].set_xlim((-0.05, 1.05))
+fig.set_figheight(4.28)
 
-fig.savefig(('Z:MITARBEITER/Lowis/results/' + parameter + '.pdf'), format='pdf')
+fig.savefig(('Z:MITARBEITER/Lowis/results/' + parameter + '.eps'), format='eps')

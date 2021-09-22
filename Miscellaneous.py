@@ -45,11 +45,11 @@ file = 'brain_0000_0000.nii'
 pathfile = join(desktop, file)
 
 
-for i in range(len(filesall)):
-    with open(filesall[i], 'rb') as f_in:
-        with gzip.open(filesall[i]+'.gz', 'wb') as f_out:
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
-    print(i)
+    print('progress: ', i + 1, ' / ', len(files))
 
 for i in range(len(filesall)):
     os.remove(filesall[i])

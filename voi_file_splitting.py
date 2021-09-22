@@ -1,8 +1,8 @@
 import os
 import glob
 
-path = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/BIOPSY_STUDY'
-voi_file = glob.glob(path+'/*/*/*.voi')
+path = 'Z:/MITARBEITER/Lowis/imaging_data_btu'
+voi_file = glob.glob(path+'/*/*.voi')
 
 dir = '/seperated_voi'
 os.mkdir(path + dir)

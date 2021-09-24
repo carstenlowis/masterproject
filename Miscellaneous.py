@@ -141,3 +141,23 @@ for i in range(len(mask_files)):
             shutil.copyfileobj(f_in, f_out)
     os.remove(mask_files[i])
     print('zip_progress: ', i+1, '/', len(mask_files))
+
+#search
+path = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/TMZ_MONITORING'
+nii_masks = glob.glob(path+'/nii_masks/*.nii.gz')
+
+#rename
+for count in range(len(nii_masks)):
+    start = nii_masks[count].find('voi_')
+    ent = nii_masks[0].find('_F', 65) +1
+    new = nii_masks[count][:start] + nii_masks[count][end:]
+    if 'followup' in new:
+        new = new.replace('_followup', '2')
+    if 'baseline' in new:
+        new = new.replace('_baseline', '')
+
+    os.rename(nii_masks[count], new)
+
+    print(os.path.basename(nii_masks[count])[:-7])
+    print('progress: ', count + 1, ' / ', len(nii_masks))
+

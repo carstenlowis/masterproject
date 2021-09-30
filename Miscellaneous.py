@@ -161,3 +161,58 @@ for count in range(len(nii_masks)):
     print(os.path.basename(nii_masks[count])[:-7])
     print('progress: ', count + 1, ' / ', len(nii_masks))
 
+
+
+
+
+
+
+files = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/METS_FIRST_STUDY_RADIOMICS/*.nii')
+
+print(files[0])
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print('progress: ', i + 1, ' / ', len(files))
+
+
+files = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/MONITORING_PARTIAL_RESECTION/*.nii')
+
+print(files[0])
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print('progress: ', i + 1, ' / ', len(files))
+
+
+files = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/PSEUDOPROGRESSION_RADIOMICS/*.nii')
+
+print(files[0])
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print('progress: ', i + 1, ' / ', len(files))
+
+
+files = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/REGORAFENIB/*.nii')
+
+print(files[0])
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print('progress: ', i + 1, ' / ', len(files))
+
+
+files = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/TMZ_MONITORING/*.nii')
+
+print(files[0])
+for i in range(len(files)):
+    with open(files[i], 'rb') as f_in:
+        with gzip.open(files[i]+'.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print('progress: ', i + 1, ' / ', len(files))
+

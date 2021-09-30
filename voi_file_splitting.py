@@ -38,9 +38,11 @@ for count in range(len(voi_file)):
             del temp[-1]
 
         new = header + temp + bottom
-        name = os.path.basename(voi_file[count])[:-4] + '_VOI_' + names[i][:-1] + '.voi'\
+        name = os.path.basename(voi_file[count])[:-4] + '_VOI_' + names[i][:-1] + '.voi'
+        if len(temp) == 6 :
+            name = name[:-4] + '_incompatible.voi'
 
-        if len(temp) > 9:
+        if len(temp) > 9 :
             if 'operation' in temp[10]:
                 name = name[:-4] + '_incompatible.voi'
 

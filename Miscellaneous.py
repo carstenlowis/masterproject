@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 from nibabel.testing import data_path
 import nibabel as nib
 import gzip
+import re
 
 #renaming
 dir='/Volumes/BTU/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task004_Hippocampus'
@@ -142,6 +143,31 @@ for i in range(len(mask_files)):
     os.remove(mask_files[i])
     print('zip_progress: ', i+1, '/', len(mask_files))
 
+#read filenames
+files = glob.glob('/Volumes/btu-ai/data/_Temp/PET_DATA_FOR_SEGMENTATION/TMZ_MONITORING/*.v')
+a = []
+b = []
+for i in range(len(files)):
+    files[i] = os.path.basename(files[i])
+    a.append(files[i][3:13])
+    b.append(files[i][0:10])
+
+names = []
+for i in range(len(files)):
+    if a[i][0] == 'F':
+        names.append(a[i])
+    if b[i][0] == 'F':
+        names.append(b[i])
+
+for i in range(len(names)):
+    string = names[i]
+    names[i] = string.replace('_', '1')
+
+for i in range(len(names)):
+    if names[i][-1] == '-':
+        string = names[i]
+        names[i] = string.replace('-', '1')
+
 #search
 path = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/TMZ_MONITORING'
 nii_masks = glob.glob(path+'/nii_masks/*.nii.gz')
@@ -215,4 +241,35 @@ for i in range(len(files)):
         with gzip.open(files[i]+'.gz', 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
     print('progress: ', i + 1, ' / ', len(files))
+
+
+for i in range(len(overview['ID.5'])):
+	overview['ID.5'][i]=overview['ID.5'][i][:3] + '-' + overview['ID.5'][i][5:]
+
+
+#rename images and masks
+old = glob.glob('/Volumes/btu-ai/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/patient_data/METS_FIRST_STUDY_RADIOMICS/masks/*.nii.gz')
+
+new = []
+for i in range(len(old)):
+    id = old[i][121:131]
+    if id[-1].isdigit() == False:
+        id = id[:-1] + '1'
+
+    if bool(re.search(r'_', id)) == True:
+        id = id[:3] + '-' + id[4:]
+
+    if bool(re.search(r'-', id)) == False:
+        id = id[:3] + '-' + id[5:]
+
+    n = '1'
+    if old[i][-8].isdigit() == True:
+        n = old[i][-8]
+
+    new.append(os.path.dirname(old[i]) + '/' + id + '_METS_FIRST_mask'+n +'.nii.gz')
+
+for i in range(len(new)):
+    os.rename(old[i], new[i])
+
+
 

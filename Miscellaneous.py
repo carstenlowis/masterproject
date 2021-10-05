@@ -248,11 +248,11 @@ for i in range(len(overview['ID.5'])):
 
 
 #rename images and masks
-old = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/patient_data/TMZ_MONITORING/masks/*.nii.gz')
+old = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/patient_data/MONITORING_PARTIAL_RESECTION/masks/*.nii.gz')
 
 new = []
 for i in range(len(old)):
-    id = old[i][88:98]
+    id = old[i][110:120]
     if id[-1].isdigit() == False:
         id = id[:-1] + '1'
 
@@ -262,11 +262,15 @@ for i in range(len(old)):
     if bool(re.search(r'-', id)) == False:
         id = id[:3] + '-' + id[5:]
 
-    #n = '1'
+    n = '1'
+    if old[i][old[i].find('Tum')+3].isdigit() ==True:
+        n = old[i][old[i].find('Tum')+3]
+
+    print(n)
     #if old[i][110].isdigit() == True:
     #    n = old[i][110]
 
-    new.append(os.path.dirname(old[i]) + '/' + id + '_TMZ_MONITORING_mask1.nii.gz')
+    new.append(os.path.dirname(old[i]) + '/' + id + '_MONITORING_PARTIAL_RESECTION_mask'+n+'.nii.gz')
 
 for i in range(len(new)):
     os.rename(old[i], new[i])

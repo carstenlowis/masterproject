@@ -1,14 +1,14 @@
 
 
 
-masks1 = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/masks/*1.nii.gz')
-masks2 = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/masks/*2.nii.gz')
-masks3 = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/masks/*3.nii.gz')
-masks4 = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/masks/*4.nii.gz')
-masks5 = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/masks/*5.nii.gz')
+masks1 = glob.glob('H:/temp/*1.nii.gz')
+masks2 = glob.glob('H:/temp/*2.nii.gz')
+masks3 = glob.glob('H:/temp/*3.nii.gz')
+masks4 = glob.glob('H:/temp/*4.nii.gz')
+masks5 = glob.glob('H:/temp/*5.nii.gz')
 
-path = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/combined_masks/'
-masks = masks5
+path = 'H:/temp/comb/'
+masks = masks2
 #combine masks
 for i in range(len(masks)):
     m1 = nib.load(masks[i][:-8]+'1.nii.gz')

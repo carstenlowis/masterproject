@@ -277,3 +277,31 @@ for i in range(len(new)):
 
 
 
+masks = glob.glob('Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/nnunet/Task070_segm/labelsTr/*mask.nii.gz')
+mapath =  'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/nnunet/Task070_segm/labelsTr/'
+images =[]
+impath = 'Y:/data/_Temp/PET_DATA_FOR_SEGMENTATION/_nnUNet_Lowis/All_PET_sum_and_masks/nnunet/Task070_segm/imagesTr/'
+for i in range(len(masks)):
+    images.append(impath + os.path.basename(masks[i])[:-11] + 'image.nii.gz')
+
+for i in range(len(masks)):
+    os.rename(images[i], impath + 'brainseg_' + "{:04n}".format(i) + '_0000.nii.gz')
+    os.rename(masks[i], mapath + 'brainseg_' + "{:04n}".format(i) + '.nii.gz')
+    print(os.path.basename(masks[i])[:-11])
+
+
+#read excel and find not working masks
+data = pd.read_excel('Z:/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task070_segm/copylog.xlsx')
+
+masks = glob.glob('Z:/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task070_segm/labelsTr_old/*.nii.gz')
+masks = sorted(masks)
+images = glob.glob('Z:/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task070_segm/imagesTr/*.nii.gz')
+images = sorted(images)
+path = 'Z:/MITARBEITER/Lowis/data_nnUnet/nnUNet_raw_data_base/nnUNet_raw_data/Task070_segm/labelsTr/'
+for i in range(len(masks)):
+    m = nib.load(masks[i])
+    p = nib.load(images[i])
+    m = np.array(m.dataobj)
+    m = nib.Nifti1Image(m, p.affine, p.header)
+    nib.save(m, path + os.path.basename(masks[i]))
+    print('progress: ', i + 1, '/', len(images))

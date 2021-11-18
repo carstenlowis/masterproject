@@ -66,8 +66,8 @@ o = 0
 tp = 0
 fp = 0
 fn = 0
-#for i in range(len(equal)):
-for i in range(93):
+for i in range(len(equal)):
+#for i in range(93):
     if images_equal[i] not in images:
         print(equal[i] + ' error1')
         if truths_equal[i] not in truths:
@@ -146,6 +146,7 @@ for i in range(93):
 
     print('progress:', i + 1, '/', len(equal))
 
+dices = result.to_numpy()[0]
 print('DICE: ', np.mean(dices), ' ± ', np.std(dices))
 print('sample size: ', i + 1)
 print('true positive: ', tp)

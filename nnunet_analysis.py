@@ -56,18 +56,29 @@ for i in range(len(equal)):
     predictions_equal.append(path_predict + '/' + equal[i])
     images_equal.append(path_image + '/' + equal[i][:4]+'.nii.gz')
 
-result = pd.DataFrame(index=['dice', 'overlap_voxel', 'image_voxel',
-                             't_voxel', 't_elongation', 't_flatness', 't_leastaxislength', 't_majoraxislength',
-                             't_minoraxislength', 't_max3Ddiameter', 't_sphericity', 't_surfacearea', 't_surfacevolumeratio',
-                             'p_voxel', 'p_elongation', 'p_flatness', 'p_leastaxislength', 'p_majoraxislength',
-                             'p_minoraxislength', 'p_max3Ddiameter', 'p_sphericity', 'p_surfecearea', 'p_surfacevolumeratio'])
+#result = pd.DataFrame(index=['dice', 'overlap_voxel', 'image_voxel',
+#                             't_voxel', 't_elongation', 't_flatness', 't_leastaxislength', 't_majoraxislength',
+#                             't_minoraxislength', 't_max3Ddiameter', 't_sphericity', 't_surfacearea', 't_surfacevolumeratio',
+#                             'p_voxel', 'p_elongation', 'p_flatness', 'p_leastaxislength', 'p_majoraxislength',
+#                             'p_minoraxislength', 'p_max3Ddiameter', 'p_sphericity', 'p_surfecearea', 'p_surfacevolumeratio'])
 
 o = 0
-tp = 0
-fp = 0
-fn = 0
+tp = []
+fp = []
+fn = []
+feature_names = []
+extractor = featureextractor.RadiomicsFeatureExtractor(paramPath)
+temp = extractor.execute(truths_equal[0], truths_equal[0])
+for key in temp.keys():
+    feature_names.append(key)
+
+result_t = pd.DataFrame(index=temp)
+result_p = pd.DataFrame(index=temp)
+
+result = pd.DataFrame(index=['dice', 'overlap_vx', 'image_vx', 'truth_vx', 'prediction_vx'])
+
 for i in range(len(equal)):
-#for i in range(93):
+#for i in range(30):
     if images_equal[i] not in images:
         print(equal[i] + ' error1')
         if truths_equal[i] not in truths:
@@ -75,14 +86,14 @@ for i in range(len(equal)):
         elif predictions_equal[i] not in predictions:
             print(equal[i] + ' error3')
     elif truths_equal[i] not in truths:
-        fp = fp + 1
+        fp.append(i)
         print(equal[i] + ' false positive')
         if images_equal[i] not in images:
             print(equal[i] + ' error4')
         elif predictions_equal[i] not in predictions:
             print(equal[i] + ' error5')
     elif predictions_equal[i] not in predictions:
-        fn = fn + 1
+        fn.append(i)
         print(equal[i] + ' false negative')
         if truths_equal[i] not in truths:
             print(equal[i] + ' error6')
@@ -101,63 +112,150 @@ for i in range(len(equal)):
         one = np.count_nonzero(sum==1)
         two = np.count_nonzero(sum==2)
         dice = ((2 * two)/(2 * two + one))
-        print(equal[i])
+        print(equal[i] + ' true positive')
         #print('dice: ', dice)
         #print('size truth: ', np.count_nonzero(t==1))
         #print('size predictions: ', np.count_nonzero(p==1))
         #print('number of identical voxel: ', two)
-        image =nib.load(images_equal[i])
+        image = nib.load(images_equal[i])
         combined_mask = t + 2 * p
         combined_mask = nib.Nifti1Image(combined_mask, image.affine, image.header)
         #nib.save(combined_mask, path+'combined/'+os.path.basename(truths_equal[i]))
 
         #shape features
-        print(np.count_nonzero(t == 1))
-        print(np.count_nonzero(p == 1))
+        #print(np.count_nonzero(t == 1))
+        #print(np.count_nonzero(p == 1))
         if np.count_nonzero(p == 1) == 0:
             extractor = featureextractor.RadiomicsFeatureExtractor(paramPath)
-            result_truth = extractor.execute(truths_equal[i], truths_equal[i])
+            result_truth = extractor.execute(images_equal[i], truths_equal[i])
             result_prediction = result_truth
+            print(equal[i] + ' error8')
             for key in result_prediction.keys():
                 result_prediction[key]=0
-                result_truth = extractor.execute(truths_equal[i], truths_equal[i])
+                result_truth = extractor.execute(images_equal[i], truths_equal[i])
+                print(equal[i] + ' error9')
         else:
             extractor = featureextractor.RadiomicsFeatureExtractor(paramPath)
-            result_truth = extractor.execute(truths_equal[i], truths_equal[i])
-            result_prediction = extractor.execute(predictions_equal[i], predictions_equal[i])
+            result_truth = extractor.execute(images_equal[i], truths_equal[i])
+            result_prediction = extractor.execute(images_equal[i], predictions_equal[i])
 
-        features = [dice, two, p.shape[0] * p.shape[1] * p.shape[2],    #dice, overlap, image voxel
-                    np.count_nonzero(t == 1), result_truth['original_shape_Elongation'],  #truth features
-                    result_truth['original_shape_Flatness'], result_truth['original_shape_LeastAxisLength'],
-                    result_truth['original_shape_MajorAxisLength'], result_truth['original_shape_MinorAxisLength'],
-                    result_truth['original_shape_Maximum3DDiameter'], result_truth['original_shape_Sphericity'],
-                    result_truth['original_shape_SurfaceArea'], result_truth['original_shape_SurfaceVolumeRatio'],
-                    np.count_nonzero(p == 1), result_prediction['original_shape_Elongation'],   #prediction features
-                    result_prediction['original_shape_Flatness'], result_prediction['original_shape_LeastAxisLength'],
-                    result_prediction['original_shape_MajorAxisLength'], result_prediction['original_shape_MinorAxisLength'],
-                    result_prediction['original_shape_Maximum3DDiameter'], result_prediction['original_shape_Sphericity'],
-                    result_prediction['original_shape_SurfaceArea'], result_prediction['original_shape_SurfaceVolumeRatio'],
-                    ]
+
         #output
-        result.insert(o, equal[i], features, True)
+
+        features = []
+        for name in feature_names:
+            features.append(result_truth[name])
+
+        result_t.insert(o, equal[i], features, True)
+
+        features = []
+        for name in feature_names:
+            features.append(result_prediction[name])
+
+        result_p.insert(o, equal[i], features, True)
+
+        result.insert(o, equal[i], [dice, two, p.shape[0]*p.shape[1]*p.shape[2], np.count_nonzero(t==1), np.count_nonzero(p==1)], True)
+
         o = o + 1
-        print(equal[i] + ' true positive')
-        tp = tp + 1
+        tp.append(i)
 
     print('progress:', i + 1, '/', len(equal))
 
+result_t = result_t.drop(feature_names[0:22])
+result_p = result_p.drop(feature_names[0:22])
+
+result_t = [result, result_t]
+result_p = [result, result_p]
+
+result_t = pd.concat(result_t)
+result_p = pd.concat(result_p)
+
 dices = result.to_numpy()[0]
-print('DICE: ', np.mean(dices), ' ± ', np.std(dices))
+print('DICE = ', np.mean(dices), ' ± ', np.std(dices))
 print('sample size: ', i + 1)
-print('true positive: ', tp)
-print('false positive: ', fp)
-print('false negative: ', fn)
+print('true positive: ', len(tp))
+print('false positive: ', len(fp))
+print('false negative: ', len(fn))
+
+y = list(result_t.to_numpy()[0])
+
+for i in range(len(result_t.index)-1):
+    rp = stats.pearsonr(dices, result_t.to_numpy()[i+1])
+    print(result_t.index[i+1], 'r, p = ', rp)
+    x = list(result_t.to_numpy()[i+1])
+    #plt.scatter(x, y)
+    #plt.show()
+
+result_t.to_csv(path + 'resultnew_nnUNet072.csv', index=True)
+
+#fn, fp
+result_fn = pd.DataFrame(index=temp)
+o = 0
+for num in fn:
+    extractor = featureextractor.RadiomicsFeatureExtractor(paramPath)
+    result_temp = extractor.execute(images_equal[num], truths_equal[num])
+
+    features = []
+    for name in feature_names:
+        features.append(result_temp[name])
+
+    result_fn.insert(o, equal[num], features, True)
+    o = o + 1
+
+result_fn = result_fn.drop(feature_names[0:22])
+
+result_fp = pd.DataFrame(index=temp)
+o = 0
+for num in fp:
+    extractor = featureextractor.RadiomicsFeatureExtractor(paramPath)
+    result_temp = extractor.execute(images_equal[num], predictions_equal[num])
+
+    features = []
+    for name in feature_names:
+        features.append(result_temp[name])
+
+    result_fp.insert(o, equal[num], features, True)
+    o = o + 1
+
+result_fp = result_fp.drop(feature_names[0:22])
+
+#small and big tumours
+vol = result_t.iloc[[13]].values.tolist()
+median_vol = np.median(vol)
+
+result_big = pd.DataFrame(index=result_t.index.values.tolist())
+result_small = pd.DataFrame(index=result_t.index.values.tolist())
+
+for column in result_t.columns:
+    if result_t.loc['original_shape_MeshVolume', column] <= median_vol:
+        result_small[column] = result_t.loc[:, column]
+    elif result_t.loc['original_shape_MeshVolume', column] > median_vol:
+        result_big[column] = result_t.loc[:, column]
+
+#plots
+parameter = 'original_shape_MeshVolume'
+
+big_data =
+small_data =
+fn_data =
+fp_data =
+truth_data = result_t.loc[parameter].values.tolist()
+prediction_data = result_p.loc[parameter].values.tolist()
+#bland altmann
+def bland_altman_plot(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2                   # Difference between data1 and data2
+    md        = np.mean(diff)                   # Mean of the difference
+    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+
+    plt.scatter(mean, diff, *args, **kwargs)
+    plt.axhline(md,           color='gray', linestyle='--')
+    plt.axhline(md + 1.96*sd, color='gray', linestyle='--')
+    plt.axhline(md - 1.96*sd, color='gray', linestyle='--')
+
+bland_altman_plot(truth_data, prediction_data)
 
 
-dices = result.to_numpy()[0]
-for i in range(len(result.index)-1):
-    rp = stats.pearsonr(dices, result.to_numpy()[i+1])
-    print(result.index[i+1], 'r, p = ', rp)
 
-
-#result.to_excel(path + 'result.xlsx', index=True)

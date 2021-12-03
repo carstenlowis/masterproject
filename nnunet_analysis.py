@@ -234,14 +234,34 @@ for column in result_t.columns:
 
 #plots
 parameter = 'original_shape_MeshVolume'
+#'original_shape_Sphericity'
+#'original_shape_MeshVolume'
+name = 'volume'
+unit = ' (ml)'
+data_conv = 0.001
 
-big_data =
-small_data =
-fn_data =
-fp_data =
-truth_data = result_t.loc[parameter].values.tolist()
-prediction_data = result_p.loc[parameter].values.tolist()
+big_data = [ e * data_conv for e in result_big.loc[parameter].values.tolist()]
+small_data = [ e * data_conv for e in result_small.loc[parameter].values.tolist()]
+truth_data = [ e * data_conv for e in result_t.loc[parameter].values.tolist()]
+prediction_data = [ e * data_conv for e in result_p.loc[parameter].values.tolist()]
+if parameter in result_fn.index.tolist():
+    fn_data = [ e * data_conv for e in result_fn.loc[parameter].values.tolist()]
+    fp_data = [ e * data_conv for e in result_fp.loc[parameter].values.tolist()]
+
 #bland altmann
+def relative_bland_altman_plot(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = (data1 - data2)/data1           # Difference between data1 and data2 in relation to data1
+    md        = np.mean(diff)                   # Mean of the difference
+    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+
+    plt.scatter(mean, diff, *args, **kwargs)
+    plt.axhline(md,           color='gray', linestyle='--')
+    plt.axhline(md + 1.96*sd, color='gray', linestyle='--')
+    plt.axhline(md - 1.96*sd, color='gray', linestyle='--')
+
 def bland_altman_plot(data1, data2, *args, **kwargs):
     data1     = np.asarray(data1)
     data2     = np.asarray(data2)
@@ -255,7 +275,98 @@ def bland_altman_plot(data1, data2, *args, **kwargs):
     plt.axhline(md + 1.96*sd, color='gray', linestyle='--')
     plt.axhline(md - 1.96*sd, color='gray', linestyle='--')
 
+plt.figure(1)
 bland_altman_plot(truth_data, prediction_data)
+plt.ylabel('Difference between true ' + name + ' and predicted ' + name + unit)
+plt.xlabel('True ' + name + unit)
 
+plt.figure(2)
+relative_bland_altman_plot(truth_data, prediction_data)
+plt.ylabel('Relative difference between true ' + name + ' and predicted ' + name + ' (%)')
+plt.xlabel('True ' + name + unit)
+
+plt.figure(3)
+plt.plot(truth_data, prediction_data, '.')
+plt.plot([np.min(truth_data+prediction_data), np.max(truth_data+prediction_data)], [np.min(truth_data+prediction_data), np.max(truth_data+prediction_data)], '--' ,color = 'black')
+plt.show()
+plt.xlabel('True ' + name + unit)
+plt.ylabel('Predicted ' + name + unit)
+
+#swarm plot
+swarm_list1 = truth_data + fn_data + fp_data
+swarm_list2 = []
+for i in range(len(prediction_data)):
+    swarm_list2.append('Detected lesions')
+for i in range(len(fn_data)):
+    swarm_list2.append('Missed lesions')
+for i in range(len(fp_data)):
+    swarm_list2.append('False positiv')
+
+plt.figure(4)
+swarm_data = pd.DataFrame({"Lesions": swarm_list2, parameter: swarm_list1})
+ax = sns.swarmplot(x = "Lesions", y = parameter, data = swarm_data)
+plt.xlabel('')
+plt.ylabel(name.capitalize() + unit)
+
+#Statistics dependent on the Parameter
+stats_data = swarm_data.sort_values(by = [parameter], ascending = False)
+stats_data = stats_data.reset_index(drop = True)
+
+s1 = 1
+s2 = 1
+s3 = 1
+sum_tp = []
+sum_fn = []
+sum_fp = []
+sen = []
+acc = []
+for i in range(len(stats_data)):
+    if stats_data['Lesions'][i] == 'Detected lesions':
+        sum_tp.append(s1)
+        s1 = s1 + 1
+        if i == 0:
+            sum_fn.append(0)
+            sum_fp.append(0)
+        else:
+            sum_fn.append(sum_fn[i-1])
+            sum_fp.append(sum_fp[i-1])
+    elif stats_data['Lesions'][i] == 'Missed lesions':
+        sum_fn.append(s2)
+        s2 = s2 + 1
+        if i == 0:
+            sum_tp.append(0)
+            sum_fp.append(0)
+        else:
+            sum_tp.append(sum_tp[i-1])
+            sum_fp.append(sum_fp[i-1])
+    elif stats_data['Lesions'][i] == 'False positiv':
+        sum_fp.append(s2)
+        s3 = s3 + 1
+        if i == 0:
+            sum_tp.append(0)
+            sum_fn.append(0)
+        else:
+            sum_tp.append(sum_tp[i-1])
+            sum_fn.append(sum_fn[i-1])
+
+    sen.append(sum_tp[i]/(sum_tp[i]+sum_fn[i]))
+    acc.append(sum_tp[i]/(sum_tp[i]+sum_fp[i]+sum_fn[i]))
+
+stats_data.insert(2, 'tp', sum_tp)
+stats_data.insert(3, 'fn', sum_fn)
+stats_data.insert(4, 'fp', sum_fp)
+stats_data.insert(5, 'sensitivity', sen)
+stats_data.insert(6, 'accuracy', acc)
+
+stats_data = stats_data.sort_values(by = [parameter])
+stats_data = stats_data.reset_index(drop = True)
+
+plt.figure(5)
+plt.plot(stats_data[parameter].tolist(), stats_data['accuracy'].tolist(), label = 'Accuracy')
+plt.plot(stats_data[parameter].tolist(), stats_data['sensitivity'].tolist(), label = 'Sensitivity')
+plt.show()
+plt.xlabel(name.capitalize() + unit)
+plt.ylabel('Accuracy and Sensitivity')
+plt.legend()
 
 

@@ -240,6 +240,10 @@ name = 'volume'
 unit = ' (ml)'
 data_conv = 0.001
 
+font = {'size': 15}
+
+plt.rc('font', **font)
+
 big_data = [ e * data_conv for e in result_big.loc[parameter].values.tolist()]
 small_data = [ e * data_conv for e in result_small.loc[parameter].values.tolist()]
 truth_data = [ e * data_conv for e in result_t.loc[parameter].values.tolist()]
@@ -280,10 +284,14 @@ bland_altman_plot(truth_data, prediction_data)
 plt.ylabel('Difference between true ' + name + ' and predicted ' + name + unit)
 plt.xlabel('True ' + name + unit)
 
+#plt.savefig((path + 'figures/' + 'bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
+
 plt.figure(2)
 relative_bland_altman_plot(truth_data, prediction_data)
-plt.ylabel('Relative difference between true ' + name + ' and predicted ' + name + ' (%)')
+plt.ylabel('Ratio between true and predicted ' + name + 's (%)')
 plt.xlabel('True ' + name + unit)
+
+#plt.savefig((path + 'figures/' + 'relative_bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 plt.figure(3)
 plt.plot(truth_data, prediction_data, '.')
@@ -291,6 +299,8 @@ plt.plot([np.min(truth_data+prediction_data), np.max(truth_data+prediction_data)
 plt.show()
 plt.xlabel('True ' + name + unit)
 plt.ylabel('Predicted ' + name + unit)
+
+#plt.savefig((path + 'figures/' + 'true_predicted.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #swarm plot
 swarm_list1 = truth_data + fn_data + fp_data
@@ -307,6 +317,8 @@ swarm_data = pd.DataFrame({"Lesions": swarm_list2, parameter: swarm_list1})
 ax = sns.swarmplot(x = "Lesions", y = parameter, data = swarm_data)
 plt.xlabel('')
 plt.ylabel(name.capitalize() + unit)
+
+#plt.savefig((path + 'figures/' + 'swarm.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #Statistics dependent on the Parameter
 stats_data = swarm_data.sort_values(by = [parameter], ascending = False)
@@ -368,5 +380,7 @@ plt.show()
 plt.xlabel(name.capitalize() + unit)
 plt.ylabel('Accuracy and Sensitivity')
 plt.legend()
+
+#plt.savefig((path + 'figures/' + 'accuracy_sensitivity.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 

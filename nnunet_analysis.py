@@ -22,13 +22,16 @@ import SimpleITK as sitk
 import six
 from radiomics import featureextractor, getTestCase
 
-path = '/Users/carsten/Desktop/'
+path = '/Users/nnunet analysis/'
 #path should contain folders: truths, predictions, images, combined
 paramPath = '/Users/carsten/PycharmProjects/masterproject/params.yaml'
 
-path_truth = path + '072_segm_groundtruth'
-path_predict = path + '072_segm_predictions'
-path_image = path + '072_segm_images'
+#path_truth = path + '072_segm_groundtruth'
+#path_predict = path + '072_segm_predictions'
+#path_image = path + '072_segm_images'
+path_truth = path + 'newts_labels'
+path_predict = path + 'newts_predictions'
+path_image = path + 'newts_images'
 
 images = glob.glob(path_image + '/*.nii.gz')
 images = sorted(images)
@@ -54,7 +57,7 @@ images_equal = []
 for i in range(len(equal)):
     truths_equal.append(path_truth + '/' + equal[i])
     predictions_equal.append(path_predict + '/' + equal[i])
-    images_equal.append(path_image + '/' + equal[i][:4]+'.nii.gz')
+    images_equal.append(path_image + '/' + equal[i][:13]+'_0000.nii.gz')
 
 #result = pd.DataFrame(index=['dice', 'overlap_voxel', 'image_voxel',
 #                             't_voxel', 't_elongation', 't_flatness', 't_leastaxislength', 't_majoraxislength',
@@ -111,7 +114,10 @@ for i in range(len(equal)):
         sum = t + p
         one = np.count_nonzero(sum==1)
         two = np.count_nonzero(sum==2)
-        dice = ((2 * two)/(2 * two + one))
+        if two == 0 and one ==0:
+            dice = 1
+        else:
+            dice = ((2 * two)/(2 * two + one))
         print(equal[i] + ' true positive')
         #print('dice: ', dice)
         #print('size truth: ', np.count_nonzero(t==1))
@@ -179,14 +185,22 @@ print('false negative: ', len(fn))
 
 y = list(result_t.to_numpy()[0])
 
+
+
 for i in range(len(result_t.index)-1):
     rp = stats.pearsonr(dices, result_t.to_numpy()[i+1])
     print(result_t.index[i+1], 'r, p = ', rp)
     x = list(result_t.to_numpy()[i+1])
+
     #plt.scatter(x, y)
     #plt.show()
 
-result_t.to_csv(path + 'resultnew_nnUNet072.csv', index=True)
+#result_t.to_csv(path + 'resultnew_nnUNet072.csv', index=True)
+
+#correlation Matrix
+correlation = result_t.T
+correlation = correlation.astype(float)
+correlation = correlation.corr()
 
 #fn, fp
 result_fn = pd.DataFrame(index=temp)
@@ -257,7 +271,7 @@ def relative_bland_altman_plot(data1, data2, *args, **kwargs):
     data1     = np.asarray(data1)
     data2     = np.asarray(data2)
     mean      = np.mean([data1, data2], axis=0)
-    diff      = (data1 - data2)/data1           # Difference between data1 and data2 in relation to data1
+    diff      = 100 * ((data1 - data2)/data1)   # Difference between data1 and data2 in relation to data1
     md        = np.mean(diff)                   # Mean of the difference
     sd        = np.std(diff, axis=0)            # Standard deviation of the difference
 
@@ -291,7 +305,7 @@ relative_bland_altman_plot(truth_data, prediction_data)
 plt.ylabel('Ratio between true and predicted ' + name + 's (%)')
 plt.xlabel('True ' + name + unit)
 
-#plt.savefig((path + 'figures/' + 'relative_bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
+plt.savefig((path + 'figures/' + 'relative_bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 plt.figure(3)
 plt.plot(truth_data, prediction_data, '.')
@@ -300,7 +314,7 @@ plt.show()
 plt.xlabel('True ' + name + unit)
 plt.ylabel('Predicted ' + name + unit)
 
-#plt.savefig((path + 'figures/' + 'true_predicted.pdf'), format = 'pdf', bbox_inches = 'tight')
+plt.savefig((path + 'figures/' + 'true_predicted.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #swarm plot
 swarm_list1 = truth_data + fn_data + fp_data
@@ -318,7 +332,7 @@ ax = sns.swarmplot(x = "Lesions", y = parameter, data = swarm_data)
 plt.xlabel('')
 plt.ylabel(name.capitalize() + unit)
 
-#plt.savefig((path + 'figures/' + 'swarm.pdf'), format = 'pdf', bbox_inches = 'tight')
+plt.savefig((path + 'figures/' + 'swarm.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #Statistics dependent on the Parameter
 stats_data = swarm_data.sort_values(by = [parameter], ascending = False)
@@ -381,6 +395,6 @@ plt.xlabel(name.capitalize() + unit)
 plt.ylabel('Accuracy and Sensitivity')
 plt.legend()
 
-#plt.savefig((path + 'figures/' + 'accuracy_sensitivity.pdf'), format = 'pdf', bbox_inches = 'tight')
+plt.savefig((path + 'figures/' + 'accuracy_sensitivity.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 

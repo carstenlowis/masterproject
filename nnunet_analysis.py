@@ -26,12 +26,15 @@ path = '/Users/nnunet analysis/'
 #path should contain folders: truths, predictions, images, combined
 paramPath = '/Users/carsten/PycharmProjects/masterproject/params.yaml'
 
-#path_truth = path + '072_segm_groundtruth'
-#path_predict = path + '072_segm_predictions'
-#path_image = path + '072_segm_images'
-path_truth = path + 'newts_labels'
-path_predict = path + 'newts_predictions'
-path_image = path + 'newts_images'
+path_truth = path + '072_segm_groundtruth'
+path_predict = path + '072_segm_predictions'
+path_image = path + '072_segm_images'
+#path_truth = path + 'train_labels'
+#path_predict = path + 'train_predictions'
+#path_image = path + 'train_images'
+#path_truth = path + 'newts_labels'
+#path_predict = path + 'newts_predictions'
+#path_image = path + 'newts_images'
 
 images = glob.glob(path_image + '/*.nii.gz')
 images = sorted(images)
@@ -57,7 +60,7 @@ images_equal = []
 for i in range(len(equal)):
     truths_equal.append(path_truth + '/' + equal[i])
     predictions_equal.append(path_predict + '/' + equal[i])
-    images_equal.append(path_image + '/' + equal[i][:13]+'_0000.nii.gz')
+    images_equal.append(path_image + '/' + equal[i][:4]+'.nii.gz')
 
 #result = pd.DataFrame(index=['dice', 'overlap_voxel', 'image_voxel',
 #                             't_voxel', 't_elongation', 't_flatness', 't_leastaxislength', 't_majoraxislength',
@@ -79,6 +82,11 @@ result_t = pd.DataFrame(index=temp)
 result_p = pd.DataFrame(index=temp)
 
 result = pd.DataFrame(index=['dice', 'overlap_vx', 'image_vx', 'truth_vx', 'prediction_vx'])
+
+vx_tp = 0
+vx_fp = 0
+vx_fn = 0
+vx_tn = 0
 
 for i in range(len(equal)):
 #for i in range(30):
@@ -114,11 +122,12 @@ for i in range(len(equal)):
         sum = t + p
         one = np.count_nonzero(sum==1)
         two = np.count_nonzero(sum==2)
-        if two == 0 and one ==0:
-            dice = 1
-        else:
-            dice = ((2 * two)/(2 * two + one))
+        dice = ((2 * two)/(2 * two + one))
         print(equal[i] + ' true positive')
+        vx_tp = vx_tp + two
+        vx_fp = vx_fp + np.count_nonzero(p==1) - two
+        vx_fn = vx_fn + np.count_nonzero(t==1) - two
+        vx_tn = vx_tn + np.count_nonzero(sum==0)
         #print('dice: ', dice)
         #print('size truth: ', np.count_nonzero(t==1))
         #print('size predictions: ', np.count_nonzero(p==1))
@@ -246,6 +255,10 @@ for column in result_t.columns:
     elif result_t.loc['original_shape_MeshVolume', column] > median_vol:
         result_big[column] = result_t.loc[:, column]
 
+#dice percentile 0 - 25 - 50 - 75 - 100
+result_perc = result_t.transpose()
+result_perc = result_perc.sort_values(by=['dice'])
+
 #plots
 parameter = 'original_shape_MeshVolume'
 #'original_shape_Sphericity'
@@ -271,7 +284,7 @@ def relative_bland_altman_plot(data1, data2, *args, **kwargs):
     data1     = np.asarray(data1)
     data2     = np.asarray(data2)
     mean      = np.mean([data1, data2], axis=0)
-    diff      = 100 * ((data1 - data2)/data1)   # Difference between data1 and data2 in relation to data1
+    diff      = 100 * np.absolute((data1 - data2)/data1)   # Difference between data1 and data2 in relation to data1
     md        = np.mean(diff)                   # Mean of the difference
     sd        = np.std(diff, axis=0)            # Standard deviation of the difference
 
@@ -305,7 +318,7 @@ relative_bland_altman_plot(truth_data, prediction_data)
 plt.ylabel('Ratio between true and predicted ' + name + 's (%)')
 plt.xlabel('True ' + name + unit)
 
-plt.savefig((path + 'figures/' + 'relative_bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
+#plt.savefig((path + 'figures/' + 'relative_bland_altman_plot.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 plt.figure(3)
 plt.plot(truth_data, prediction_data, '.')
@@ -314,7 +327,7 @@ plt.show()
 plt.xlabel('True ' + name + unit)
 plt.ylabel('Predicted ' + name + unit)
 
-plt.savefig((path + 'figures/' + 'true_predicted.pdf'), format = 'pdf', bbox_inches = 'tight')
+#plt.savefig((path + 'figures/' + 'true_predicted.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #swarm plot
 swarm_list1 = truth_data + fn_data + fp_data
@@ -332,7 +345,7 @@ ax = sns.swarmplot(x = "Lesions", y = parameter, data = swarm_data)
 plt.xlabel('')
 plt.ylabel(name.capitalize() + unit)
 
-plt.savefig((path + 'figures/' + 'swarm.pdf'), format = 'pdf', bbox_inches = 'tight')
+#plt.savefig((path + 'figures/' + 'swarm.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 #Statistics dependent on the Parameter
 stats_data = swarm_data.sort_values(by = [parameter], ascending = False)
@@ -395,6 +408,23 @@ plt.xlabel(name.capitalize() + unit)
 plt.ylabel('Accuracy and Sensitivity')
 plt.legend()
 
-plt.savefig((path + 'figures/' + 'accuracy_sensitivity.pdf'), format = 'pdf', bbox_inches = 'tight')
+#plt.savefig((path + 'figures/' + 'accuracy_sensitivity.pdf'), format = 'pdf', bbox_inches = 'tight')
+
+#swarmplot dices percentile
+lengths = np.array_split(result_perc, 4)
+
+Q1 = ['Q1'] * len(lengths[0])
+Q2 = ['Q2'] * len(lengths[1])
+Q3 = ['Q3'] * len(lengths[2])
+Q4 = ['Q4'] * len(lengths[3])
+Q = Q1 + Q2 + Q3 + Q4
+
+plt.figure(6)
+perc_data = {parameter: result_perc[parameter]/1000, 'Quartile': Q}
+ax = sns.swarmplot(x='Quartile', y=parameter, data = perc_data)
+plt.xlabel('')
+plt.ylabel(name.capitalize() + unit)
+
+#plt.savefig((path + 'figures/' + 'Quartile_dice.pdf'), format = 'pdf', bbox_inches = 'tight')
 
 
